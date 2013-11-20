@@ -1,0 +1,17 @@
+{
+    "name": "milli",
+    "version": "0.0.1",
+    "main": [
+        "build/milli.js",
+        "build/milli.min.js"
+    ],
+    "license": "BSD-3-Clause",
+    "ignore": [
+        "*.json",
+        "*.md",
+        "Gruntfile.js",
+        "karma.conf.js",
+        "src",
+        "test"
+    ]
+}

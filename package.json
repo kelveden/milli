@@ -1,0 +1,33 @@
+{
+    "name": "milli",
+    "version": "0.0.1",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/kelveden/milli.git"
+    },
+    "scripts": {
+        "test": "node_modules/.bin/grunt ci"
+    },
+    "author": "Alistair Dutton <kelveden@gmail.com>",
+    "license": "BSD-3-Clause",
+    "bugs": {
+        "url": "https://github.com/milli/issues"
+    },
+    "devDependencies": {
+        "karma": "*",
+        "karma-mocha": "*",
+        "karma-chai": "*",
+        "grunt": "*",
+        "grunt-cli": "*",
+        "grunt-karma": "*",
+        "grunt-contrib-uglify": "~0.1.2",
+        "grunt-contrib-jshint": "~0.7.2",
+        "grunt-contrib-watch": "~0.5.3",
+        "grunt-mocha-cli": "~1.1.0",
+        "grunt-contrib-copy": "~0.4.0",
+        "grunt-bump": "~0.0.11"
+    },
+    "engines": {
+        "node": ">=0.10.0"
+    }
+}
