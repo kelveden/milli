@@ -1,7 +1,7 @@
 /* jshint expr:true */
 describe("milli", function () {
     it("can be configured", function () {
-        milli.configure({ vanilliPort: 1234, vanilliFakePort: 5678 });
+        milli.configure({ port: 1234 });
     });
 
     describe("configuration", function () {
@@ -11,16 +11,10 @@ describe("milli", function () {
             }).to.throw(/config /i);
         });
 
-        it("throws an error if no vanilliPort is specified", function () {
+        it("throws an error if no port is specified", function () {
             expect(function () {
-                milli.configure({ vanilliFakePort: 5678 });
-            }).to.throw(/vanilliPort/i);
-        });
-
-        it("throws an error if no vanilliFakePort is specified", function () {
-            expect(function () {
-                milli.configure({ vanilliPort: 1234 });
-            }).to.throw(/vanilliFakePort/i);
+                milli.configure({});
+            }).to.throw(/port/i);
         });
     });
 });

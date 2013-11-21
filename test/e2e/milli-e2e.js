@@ -3,12 +3,12 @@ describe("milli", function () {
     var request = superagent;
 
     before(function (done) {
-        milli.configure({ vanilliPort: 8081, vanilliFakePort: 8082 });
+        milli.configure({ port: 8081 });
         done();
     });
 
     it("can clear down the stubs", function (done) {
-        request.del("http://localhost:8081/expect")
+        request.del("http://localhost:8081/_vanilli/expect")
             .end(function (err, res) {
                 if (err) return done(err);
 
