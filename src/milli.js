@@ -1,10 +1,8 @@
 (function (context) {
-    function Milli(vanilliPort, vanilliFakePort) {
+    function Milli() {
+        var vanilliPort, vanilliFakePort;
 
-    }
-
-    context.milli = {
-        create: function (config) {
+        this.configure = function (config) {
             if (!config) {
                 throw new Error("Config must be specified.");
             }
@@ -17,7 +15,10 @@
                 throw new Error("config.vanilliFakePort must be specified.");
             }
 
-            return new Milli(config.vanilliPort, config.vanilliFakePort);
-        }
-    };
+            vanilliPort = config.vanilliPort;
+            vanilliFakePort = config.vanilliFakePort;
+        };
+    }
+
+    context.milli = new Milli();
 })(window);
