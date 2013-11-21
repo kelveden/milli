@@ -59,6 +59,13 @@ module.exports = function (grunt) {
                     nospawn: true
                 }
             }
+        },
+        bower: {
+            install: {
+                options: {
+                    copy: false
+                }
+            }
         }
     });
 
@@ -66,11 +73,14 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-bower-task');
     grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-bump');
 
-    grunt.registerTask('ci', [ 'jshint', 'karma:all', 'uglify', 'copy' ]);
     grunt.registerTask('tdd', [ 'jshint', 'karma:all', 'watch' ]);
+    grunt.registerTask('build', [ 'jshint', 'karma:all', 'uglify', 'copy' ]);
+    grunt.registerTask('ci', [ 'bower', 'build' ]);
 
-    grunt.registerTask('default', [ 'ci' ]);
+    grunt.registerTask('default', [ 'build' ]);
+
 };
