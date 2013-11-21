@@ -18,29 +18,19 @@ describe("milli", function () {
     });
 
     it("can record a stub", function (done) {
-        request.post("http://localhost:8081/expect")
-            .send({
-                criteria: {
-                    url: "/my/url"
-                },
-                respondWith: {
-                    status: 234,
-                    entity: { something: "else" },
-                    contentType: "application/json"
-                }
-            })
+
+        milli.onGetTo("/my/url")
+            .respondWith(234, {
+                body: { some: "data" },
+                contentType: "application/json"
+            });
+
+        request.get("http://localhost:8082/my/url")
             .end(function (err, res) {
                 if (err) return done(err);
 
-                expect(res.status).to.equal(200);
-
-                request.get("http://localhost:8082/my/url")
-                    .end(function (err, res) {
-                        if (err) return done(err);
-
-                        expect(res.status).to.equal(234);
-                        done();
-                    });
+                expect(res.status).to.equal(234);
+                done();
             });
     });
 });

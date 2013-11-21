@@ -18,6 +18,14 @@
             vanilliPort = config.vanilliPort;
             vanilliFakePort = config.vanilliFakePort;
         };
+
+        this.onGetTo = function (url) {
+            return {
+                respondWith: function (status, data) {
+
+                }
+            };
+        };
     }
 
     context.milli = new Milli();
