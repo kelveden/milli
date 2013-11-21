@@ -35,12 +35,19 @@ module.exports = function (grunt) {
             }
         },
         karma: {
-            all: {
+            options: {
+                autoWatch: false,
+                singleRun: true,
+                keepalive: true
+            },
+            unit: {
                 options: {
-                    configFile: 'karma.conf.js',
-                    autoWatch: false,
-                    singleRun: true,
-                    keepalive: true
+                    configFile: 'karma.conf.js'
+                }
+            },
+            e2e: {
+                options: {
+                    configFile: 'karma-e2e.conf.js',
                 }
             }
         },
@@ -77,8 +84,8 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-bump');
 
-    grunt.registerTask('tdd', [ 'jshint', 'karma:all', 'watch' ]);
-    grunt.registerTask('build', [ 'jshint', 'karma:all', 'uglify', 'copy' ]);
+    grunt.registerTask('tdd', [ 'jshint', 'karma:unit', 'karma:e2e', 'watch' ]);
+    grunt.registerTask('build', [ 'jshint', 'karma:unit', 'uglify', 'copy' ]);
     grunt.registerTask('ci', [ 'bower', 'build' ]);
 
     grunt.registerTask('default', [ 'build' ]);

@@ -4,8 +4,12 @@ module.exports = function(config) {
         browsers: [ 'PhantomJS' ],
         autoWatch: true,
         files: [
+            {
+                pattern: 'bower_components/superagent/superagent.js',
+                watch: false
+            },
             'src/**/*.js',
-            'test/unit/*.js',
+            'test/e2e/*.js',
         ]
     });
 };
