@@ -36,18 +36,18 @@ module.exports = function (grunt) {
         },
         karma: {
             options: {
-                autoWatch: false,
-                singleRun: true,
-                keepalive: true
+                configFile: 'karma.conf.js'
             },
-            unit: {
+            tdd: {
                 options: {
-                    configFile: 'karma.conf.js'
+                    background: true,
+                    singleRun: false
                 }
             },
-            e2e: {
+            ci: {
                 options: {
-                    configFile: 'karma-e2e.conf.js',
+                    background: false,
+                    singleRun: true
                 }
             }
         },
@@ -61,7 +61,7 @@ module.exports = function (grunt) {
         watch: {
             js: {
                 files: [ '**/*.js', '!node_modules/**/*.js' ],
-                tasks: [ 'tdd' ],
+                tasks: [ 'tdd_rerun' ],
                 options: {
                     nospawn: true
                 }
@@ -84,8 +84,10 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-bump');
 
-    grunt.registerTask('tdd', [ 'jshint', 'karma:unit', 'karma:e2e', 'watch' ]);
-    grunt.registerTask('build', [ 'jshint', 'karma:unit', 'uglify', 'copy' ]);
+    grunt.registerTask('tdd', [ 'jshint', 'karma:tdd:start', 'watch' ]);
+    grunt.registerTask('tdd_rerun', [ 'jshint', 'karma:tdd:run' ]);
+
+    grunt.registerTask('build', [ 'jshint', 'karma:ci', 'uglify', 'copy' ]);
     grunt.registerTask('ci', [ 'bower', 'build' ]);
 
     grunt.registerTask('default', [ 'build' ]);

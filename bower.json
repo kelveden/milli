@@ -15,6 +15,7 @@
     "test"
   ],
   "devDependencies": {
-    "superagent": "~0.15.7"
+    "superagent": "~0.15.7",
+    "sinon": "~1.7.3"
   }
 }
