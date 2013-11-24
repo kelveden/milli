@@ -1,7 +1,8 @@
 /* jshint expr:true */
 describe("milli", function () {
     var server, vanilliPort = 1234,
-        dummyDone = function () {},
+        dummyDone = function () {
+        },
         dummyStubContent = onGetTo("/some/url").respondWith(200);
 
     beforeEach(function () {
@@ -31,11 +32,25 @@ describe("milli", function () {
         });
     });
 
-    describe("stub addition", function () {
-        it("does not result in an error response for a valid stub", function (done) {
+    describe("stub adder", function () {
+        it("can be used to add a single stub", function (done) {
             server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/expect", [ 200, {}, "" ]);
 
             milli.stub(onGetTo('/some/url').respondWith(200), function (err) {
+                expect(err).to.not.exist;
+                done();
+            });
+
+            server.respond();
+        });
+
+        it("can be used to add multiple stubs", function (done) {
+            server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/expect", [ 200, {}, "" ]);
+
+            milli.stub([
+                onGetTo('/some/url').respondWith(200),
+                onGetTo('/some/other/url').respondWith(200)
+            ], function (err) {
                 expect(err).to.not.exist;
                 done();
             });

@@ -49,7 +49,7 @@
         };
 
         xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.send(stub);
+        xhr.send(JSON.stringify(stub));
     }
 
     function clearStubs(done) {
@@ -90,7 +90,13 @@
                 throw new Error("Done callback must be specified.");
             }
 
-            sendStub(JSON.stringify(request._addStubRequestBody), done);
+            if (typeof request.length === 'number') {
+                sendStub(request.map(function (addStubRequest) {
+                    return addStubRequest._addStubRequestBody;
+                }), done);
+            } else {
+                sendStub(request._addStubRequestBody, done);
+            }
         },
         clearStubs: function (done) {
             clearStubs(done);
