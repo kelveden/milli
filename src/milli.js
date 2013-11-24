@@ -11,6 +11,12 @@
                 return this;
             };
 
+            this.header = function (name, value) {
+                request.respondWith.headers = request.respondWith.headers || {};
+                request.respondWith.headers[name] = value;
+                return this;
+            };
+
             this._addStubRequestBody = request;
         }
 
@@ -25,6 +31,12 @@
         this.body = function (body, contentType) {
             request.criteria.body = body;
             request.criteria.contentType = contentType;
+            return this;
+        };
+
+        this.header = function (name, value) {
+            request.criteria.headers = request.respondWith.headers || {};
+            request.criteria.headers[name] = value;
             return this;
         };
 

@@ -32,6 +32,75 @@ describe("milli", function () {
         });
     });
 
+    describe("stub builder", function () {
+        var dummyUrl = "/some/url",
+            dummyStatus = 234,
+            dummyContentType = "some/contenttype",
+            dummyEntity = { some: "data" };
+
+        it("assigns the response body to the stub response", function () {
+            var entity = { myfield: "myvalue" },
+                stub = onGetTo(dummyUrl)
+                    .respondWith(dummyStatus).body(entity, dummyContentType);
+
+            expect(stub._addStubRequestBody.respondWith.body).to.deep.equal(entity);
+        });
+
+        it("assigns the response content type to the stub response", function () {
+            var contentType = "my/contenttype",
+                stub = onGetTo(dummyUrl)
+                    .respondWith(dummyStatus).body(dummyEntity, contentType);
+
+            expect(stub._addStubRequestBody.respondWith.contentType).to.deep.equal(contentType);
+        });
+
+        it("assigns the response status to the stub response", function () {
+            var status = 234,
+                stub = onGetTo(dummyUrl).respondWith(status);
+
+            expect(stub._addStubRequestBody.respondWith.status).to.equal(status);
+        });
+
+        it("assigns the response headers to the stub response", function () {
+            var headerValue = "myvalue",
+                stub = onGetTo(dummyUrl).respondWith(dummyStatus)
+                    .header('My-Header', headerValue);
+
+            expect(stub._addStubRequestBody.respondWith.headers['My-Header']).to.equal(headerValue);
+        });
+
+        it("assigns the URL to the stub criteria", function () {
+            var url = "/my/url",
+                stub = onGetTo(url).respondWith(dummyStatus);
+
+            expect(stub._addStubRequestBody.criteria.url).to.equal(url);
+        });
+
+        it("assigns the correct HTTP method to the stub criteria", function () {
+            var method = "MYMETHOD",
+                stub = onRequestTo('MYMETHOD', dummyUrl).respondWith(dummyStatus);
+
+            expect(stub._addStubRequestBody.criteria.method).to.equal(method);
+        });
+
+        it("assigns the body to the stub criteria", function () {
+            var body = { myfield: "myvalue" },
+                stub = onGetTo(dummyUrl).body(body, dummyContentType).respondWith(dummyStatus);
+
+            expect(stub._addStubRequestBody.criteria.body).to.deep.equal(body);
+        });
+
+        it("assigns the content type to the stub criteria", function () {
+            var contentType = "my/contenttype",
+                stub = onGetTo(dummyUrl).body(dummyEntity, contentType).respondWith(dummyStatus);
+
+            expect(stub._addStubRequestBody.criteria.contentType).to.equal(contentType);
+        });
+
+        it("assigns the headers to the stub criteria");
+        it("assigns the correct number of times that the stub can respond");
+    });
+
     describe("stub adder", function () {
         it("can be used to add a single stub", function (done) {
             server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/expect", [ 200, {}, "" ]);
