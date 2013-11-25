@@ -1,7 +1,8 @@
 /* jshint expr:true */
 describe("milli", function () {
     var server, vanilliPort = 1234,
-        dummyDone = function () {};
+        dummyDone = function () {
+        };
 
     beforeEach(function () {
         server = sinon.fakeServer.create();
@@ -224,6 +225,40 @@ describe("milli", function () {
             milli.clearStubs(function (err) {
                 expect(err).to.exist;
                 expect(err).to.match(/Error!/);
+                done();
+            });
+
+            server.respond();
+        });
+    });
+
+    describe('verifier', function () {
+        it("causes error in callback if result contains verification errors", function (done) {
+            server.respondWith("GET", "http://localhost:" + vanilliPort + "/_vanilli/stubs/verification", [ 200, {},
+                JSON.stringify({
+                    errors: [ "myerror1", "myerror2" ]
+                })
+            ]);
+
+            milli.verifyExpectations(function (err) {
+                expect(err).to.exist;
+                expect(err).to.match(/myerror1/);
+                expect(err).to.match(/myerror2/);
+                done();
+            });
+
+            server.respond();
+        });
+
+        it("does not cause error in callback if result contains no verification errors", function (done) {
+            server.respondWith("GET", "http://localhost:" + vanilliPort + "/_vanilli/stubs/verification", [ 200, {},
+                JSON.stringify({
+                    errors: []
+                })
+            ]);
+
+            milli.verifyExpectations(function (err) {
+                expect(err).to.not.exist;
                 done();
             });
 

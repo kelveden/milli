@@ -1,5 +1,5 @@
 /* jshint expr:true */
-describe.skip("milli", function () {
+describe("milli", function () {
     var request = superagent;
 
     before(function (done) {
@@ -26,6 +26,20 @@ describe.skip("milli", function () {
                 .respondWith(234), function (err) {
 
                 done(err);
+            });
+        });
+
+        it("can be used to verify expectations", function (done) {
+            milli.stub(onGetTo('/my/url')
+                .respondWith(234).times(2), function (err) {
+                if (err) done(err);
+
+                milli.verifyExpectations(function (err) {
+                    console.log(err);
+                    expect(err).to.exist;
+                    expect(err.message).to.match(/GET \/my\/url/);
+                    done();
+                });
             });
         });
 

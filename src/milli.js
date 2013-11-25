@@ -85,6 +85,27 @@
         xhr.send();
     }
 
+    function verify(done) {
+        xhr.open("GET", "http://localhost:" + vanilliPort + "/_vanilli/stubs/verification", true);
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.errors.length > 0) {
+                        done(new Error("Vanilli expectations were not met:\n\n" + response.errors.join("\n")));
+                    } else {
+                        done();
+                    }
+                } else {
+                    done(new Error("Could not verify expectations. " + xhr.responseText));
+                }
+            }
+        };
+
+        xhr.send();
+    }
+
     context.milli = {
         configure: function (config) {
             if (!config) {
@@ -125,6 +146,9 @@
         },
         clearStubs: function (done) {
             clearStubs(done);
+        },
+        verifyExpectations: function (done) {
+            verify(done);
         }
     };
 
