@@ -13,6 +13,14 @@ module.exports = function(config) {
                 watch: false
             },
             {
+                pattern: 'bower_components/sinon/lib/sinon/call.js',
+                watch: false
+            },
+            {
+                pattern: 'bower_components/sinon/lib/sinon/spy.js',
+                watch: false
+            },
+            {
                 pattern: 'bower_components/superagent/superagent.js',
                 watch: false
             },

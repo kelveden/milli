@@ -132,16 +132,18 @@ describe("milli", function () {
             server.respond();
         });
 
-        it("can be used to add multiple stubs", function (done) {
+        it("can be used to chain multiple stubs together so that only one call is made to Vanilli", function (done) {
+            var vanilliSpy = sinon.spy(server, "handleRequest");
             server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/expect", [ 200, {}, "" ]);
 
-            milli.stub([
-                onGetTo('/some/url').respondWith(200),
-                onGetTo('/some/other/url').respondWith(200)
-            ], function (err) {
-                expect(err).to.not.exist;
-                done();
-            });
+            milli
+                .stub(onGetTo('/some/url').respondWith(200))
+                .stub(onGetTo('/some/other/url').respondWith(200), function (err) {
+                    expect(err).to.not.exist;
+                    expect(vanilliSpy.calledOnce).to.be.truthy;
+
+                    done();
+                });
 
             server.respond();
         });
@@ -162,12 +164,6 @@ describe("milli", function () {
             expect(function () {
                 milli.stub(null, dummyDone);
             }).to.throw(/stub content/i);
-        });
-
-        it("throws an error if the done callback is missing", function () {
-            expect(function () {
-                milli.stub(dummyStubContent);
-            }).to.throw(/done callback/i);
         });
     });
 

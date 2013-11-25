@@ -1,5 +1,5 @@
 (function (context) {
-    var vanilliPort, xhr;
+    var vanilliPort, xhr, stubRequests = [];
 
     function AddStubRequest(method, url) {
         function StubRespondWith(status) {
@@ -50,7 +50,7 @@
         };
     }
 
-    function sendStub(stub, done) {
+    function sendStubs(stub, done) {
         xhr.open("POST", "http://localhost:" + vanilliPort + "/_vanilli/expect", true);
 
         xhr.onreadystatechange = function () {
@@ -103,17 +103,18 @@
                 throw new Error("Stub content must be specified.");
             }
 
-            if (!done) {
-                throw new Error("Done callback must be specified.");
+            stubRequests.push(request);
+
+            if (done) {
+                sendStubs(stubRequests.map(function (stubRequest) {
+                    return stubRequest._addStubRequestBody;
+                }), function (err) {
+                    stubRequests.length = 0;
+                    done(err);
+                });
             }
 
-            if (typeof request.length === 'number') {
-                sendStub(request.map(function (addStubRequest) {
-                    return addStubRequest._addStubRequestBody;
-                }), done);
-            } else {
-                sendStub(request._addStubRequestBody, done);
-            }
+            return this;
         },
         clearStubs: function (done) {
             clearStubs(done);
