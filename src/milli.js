@@ -17,6 +17,11 @@
                 return this;
             };
 
+            this.times = function (times) {
+                request.times = times;
+                return this;
+            };
+
             this._addStubRequestBody = request;
         }
 
@@ -35,7 +40,7 @@
         };
 
         this.header = function (name, value) {
-            request.criteria.headers = request.respondWith.headers || {};
+            request.criteria.headers = request.criteria.headers || {};
             request.criteria.headers[name] = value;
             return this;
         };

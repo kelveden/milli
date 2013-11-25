@@ -62,11 +62,14 @@ describe("milli", function () {
         });
 
         it("assigns the response headers to the stub response", function () {
-            var headerValue = "myvalue",
+            var headerValue1 = "myvalue1",
+                headerValue2 = "myvalue2",
                 stub = onGetTo(dummyUrl).respondWith(dummyStatus)
-                    .header('My-Header', headerValue);
+                    .header('My-Header1', headerValue1)
+                    .header('My-Header2', headerValue2);
 
-            expect(stub._addStubRequestBody.respondWith.headers['My-Header']).to.equal(headerValue);
+            expect(stub._addStubRequestBody.respondWith.headers['My-Header1']).to.equal(headerValue1);
+            expect(stub._addStubRequestBody.respondWith.headers['My-Header2']).to.equal(headerValue2);
         });
 
         it("assigns the URL to the stub criteria", function () {
@@ -97,8 +100,24 @@ describe("milli", function () {
             expect(stub._addStubRequestBody.criteria.contentType).to.equal(contentType);
         });
 
-        it("assigns the headers to the stub criteria");
-        it("assigns the correct number of times that the stub can respond");
+        it("assigns the headers to the stub criteria", function () {
+            var headerValue1 = "myvalue1",
+                headerValue2 = "myvalue2",
+                stub = onGetTo(dummyUrl)
+                    .header('My-Header1', headerValue1)
+                    .header('My-Header2', headerValue2)
+                    .respondWith(dummyStatus);
+
+            expect(stub._addStubRequestBody.criteria.headers['My-Header1']).to.equal(headerValue1);
+            expect(stub._addStubRequestBody.criteria.headers['My-Header2']).to.equal(headerValue2);
+        });
+
+        it("assigns the correct number of times that the stub can respond", function () {
+            var times = 3,
+                stub = onGetTo(dummyUrl).respondWith(dummyStatus).times(times);
+
+            expect(stub._addStubRequestBody.times).to.equal(times);
+        });
     });
 
     describe("stub adder", function () {
