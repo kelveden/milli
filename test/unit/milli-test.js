@@ -1,9 +1,7 @@
 /* jshint expr:true */
 describe("milli", function () {
     var server, vanilliPort = 1234,
-        dummyDone = function () {
-        },
-        dummyStubContent = onGetTo("/some/url").respondWith(200);
+        dummyDone = function () {};
 
     beforeEach(function () {
         server = sinon.fakeServer.create();
@@ -122,7 +120,7 @@ describe("milli", function () {
 
     describe("stub adder", function () {
         it("can be used to add a single stub", function (done) {
-            server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/expect", [ 200, {}, "" ]);
+            server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
 
             milli.stub(onGetTo('/some/url').respondWith(200), function (err) {
                 expect(err).to.not.exist;
@@ -132,9 +130,33 @@ describe("milli", function () {
             server.respond();
         });
 
+        it("can be used to add a single expectation", function (done) {
+            server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
+
+            milli.expect(onGetTo('/some/url').respondWith(200), function (err) {
+                expect(err).to.not.exist;
+                done();
+            });
+
+            server.respond();
+        });
+
+        it("sets the 'times' of an expectation to 1 if not explicitly specified", function (done) {
+            var request = onGetTo('/some/url').respondWith(200);
+            server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
+
+            milli.expect(request, function (err) {
+                expect(err).to.not.exist;
+                expect(request._addStubRequestBody.times).to.equal(1);
+                done();
+            });
+
+            server.respond();
+        });
+
         it("can be used to chain multiple stubs together so that only one call is made to Vanilli", function (done) {
             var vanilliSpy = sinon.spy(server, "handleRequest");
-            server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/expect", [ 200, {}, "" ]);
+            server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
 
             milli
                 .stub(onGetTo('/some/url').respondWith(200))
@@ -148,8 +170,25 @@ describe("milli", function () {
             server.respond();
         });
 
+        it("can be used to chain a combination of stubs AND expectations together so that only one call is made to Vanilli", function (done) {
+            var vanilliSpy = sinon.spy(server, "handleRequest");
+            server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
+
+            milli
+                .stub(onGetTo('/some/url').respondWith(200))
+                .expect(onGetTo('/some/other/url').respondWith(200).times(2))
+                .stub(onGetTo('/yet/another/url').respondWith(200), function (err) {
+                    expect(err).to.not.exist;
+                    expect(vanilliSpy.calledOnce).to.be.truthy;
+
+                    done();
+                });
+
+            server.respond();
+        });
+
         it("results in an error response for an invalid stub", function (done) {
-            server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/expect", [ 400, {}, "" ]);
+            server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 400, {}, "" ]);
 
             milli.stub(onGetTo().respondWith(200), function (err) {
                 expect(err).to.exist;
@@ -169,7 +208,7 @@ describe("milli", function () {
 
     describe('stub clearance', function () {
         it("does not result in an error response if successful", function (done) {
-            server.respondWith("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/expect", [ 200, {}, "" ]);
+            server.respondWith("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
 
             milli.clearStubs(function (err) {
                 expect(err).to.not.exist;
@@ -180,7 +219,7 @@ describe("milli", function () {
         });
 
         it("does result in an error response if unsuccessful", function (done) {
-            server.respondWith("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/expect", [ 500, {}, "Error!" ]);
+            server.respondWith("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 500, {}, "Error!" ]);
 
             milli.clearStubs(function (err) {
                 expect(err).to.exist;

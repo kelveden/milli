@@ -51,16 +51,16 @@
     }
 
     function sendStubs(stub, done) {
-        xhr.open("POST", "http://localhost:" + vanilliPort + "/_vanilli/expect", true);
+        xhr.open("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", true);
 
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
                 if (xhr.status === 200) {
                     done();
                 } else if (xhr.status === 400) {
-                    done(new Error("Stub was invalid. " + xhr.responseText));
+                    done(new Error("One or more stubs were invalid. " + xhr.responseText));
                 } else {
-                    done(new Error("Could not add stub. " + xhr.responseText));
+                    done(new Error("Could not add stubs. " + xhr.responseText));
                 }
             }
         };
@@ -70,7 +70,7 @@
     }
 
     function clearStubs(done) {
-        xhr.open("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/expect", true);
+        xhr.open("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/stubs", true);
 
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
@@ -115,6 +115,13 @@
             }
 
             return this;
+        },
+        expect: function (request, done) {
+            if (!request._addStubRequestBody.times && (request._addStubRequestBody.times !== 0)) {
+                request._addStubRequestBody.times = 1;
+            }
+
+            return this.stub(request, done);
         },
         clearStubs: function (done) {
             clearStubs(done);

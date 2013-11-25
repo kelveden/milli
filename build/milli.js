@@ -1,5 +1,5 @@
 (function (context) {
-    var vanilliPort, xhr;
+    var vanilliPort, xhr, stubRequests = [];
 
     function AddStubRequest(method, url) {
         function StubRespondWith(status) {
@@ -50,17 +50,17 @@
         };
     }
 
-    function sendStub(stub, done) {
-        xhr.open("POST", "http://localhost:" + vanilliPort + "/_vanilli/expect", true);
+    function sendStubs(stub, done) {
+        xhr.open("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", true);
 
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
                 if (xhr.status === 200) {
                     done();
                 } else if (xhr.status === 400) {
-                    done(new Error("Stub was invalid. " + xhr.responseText));
+                    done(new Error("One or more stubs were invalid. " + xhr.responseText));
                 } else {
-                    done(new Error("Could not add stub. " + xhr.responseText));
+                    done(new Error("Could not add stubs. " + xhr.responseText));
                 }
             }
         };
@@ -70,7 +70,7 @@
     }
 
     function clearStubs(done) {
-        xhr.open("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/expect", true);
+        xhr.open("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/stubs", true);
 
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
@@ -103,17 +103,25 @@
                 throw new Error("Stub content must be specified.");
             }
 
-            if (!done) {
-                throw new Error("Done callback must be specified.");
+            stubRequests.push(request);
+
+            if (done) {
+                sendStubs(stubRequests.map(function (stubRequest) {
+                    return stubRequest._addStubRequestBody;
+                }), function (err) {
+                    stubRequests.length = 0;
+                    done(err);
+                });
             }
 
-            if (typeof request.length === 'number') {
-                sendStub(request.map(function (addStubRequest) {
-                    return addStubRequest._addStubRequestBody;
-                }), done);
-            } else {
-                sendStub(request._addStubRequestBody, done);
+            return this;
+        },
+        expect: function (request, done) {
+            if (!request._addStubRequestBody.times && (request._addStubRequestBody.times !== 0)) {
+                request._addStubRequestBody.times = 1;
             }
+
+            return this.stub(request, done);
         },
         clearStubs: function (done) {
             clearStubs(done);
