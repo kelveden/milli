@@ -123,10 +123,7 @@ describe("milli", function () {
         it("can be used to add a single stub", function (done) {
             server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
 
-            milli.stub(onGetTo('/some/url').respondWith(200), function (err) {
-                expect(err).to.not.exist;
-                done();
-            });
+            milli.stub(onGetTo('/some/url').respondWith(200)).run(done);
 
             server.respond();
         });
@@ -134,10 +131,7 @@ describe("milli", function () {
         it("can be used to add a single expectation", function (done) {
             server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
 
-            milli.expect(onGetTo('/some/url').respondWith(200), function (err) {
-                expect(err).to.not.exist;
-                done();
-            });
+            milli.expect(onGetTo('/some/url').respondWith(200)).run(done);
 
             server.respond();
         });
@@ -146,8 +140,7 @@ describe("milli", function () {
             var request = onGetTo('/some/url').respondWith(200);
             server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
 
-            milli.expect(request, function (err) {
-                expect(err).to.not.exist;
+            milli.expect(request).run(function () {
                 expect(request._addStubRequestBody.times).to.equal(1);
                 done();
             });
@@ -161,10 +154,8 @@ describe("milli", function () {
 
             milli
                 .stub(onGetTo('/some/url').respondWith(200))
-                .stub(onGetTo('/some/other/url').respondWith(200), function (err) {
-                    expect(err).to.not.exist;
+                .stub(onGetTo('/some/other/url').respondWith(200)).run(function () {
                     expect(vanilliSpy.calledOnce).to.be.truthy;
-
                     done();
                 });
 
@@ -178,10 +169,8 @@ describe("milli", function () {
             milli
                 .stub(onGetTo('/some/url').respondWith(200))
                 .expect(onGetTo('/some/other/url').respondWith(200).times(2))
-                .stub(onGetTo('/yet/another/url').respondWith(200), function (err) {
-                    expect(err).to.not.exist;
+                .stub(onGetTo('/yet/another/url').respondWith(200)).run(function () {
                     expect(vanilliSpy.calledOnce).to.be.truthy;
-
                     done();
                 });
 
@@ -191,9 +180,8 @@ describe("milli", function () {
         it("results in an error response for an invalid stub", function (done) {
             server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 400, {}, "" ]);
 
-            milli.stub(onGetTo().respondWith(200), function (err) {
-                expect(err).to.exist;
-                expect(err.message).to.match(/invalid/i);
+            milli.stub(onGetTo().respondWith(200)).run(function (err) {
+                expect(err).to.match(/invalid/i);
                 done();
             });
 
@@ -202,7 +190,7 @@ describe("milli", function () {
 
         it("throws an error if the stub content is missing", function () {
             expect(function () {
-                milli.stub(null, dummyDone);
+                milli.stub(null);
             }).to.throw(/stub content/i);
         });
     });

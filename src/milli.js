@@ -119,36 +119,36 @@
             vanilliPort = config.port;
             xhr = new XMLHttpRequest();
         },
-        stub: function (request, done) {
+        stub: function (request) {
             if (!request) {
                 throw new Error("Stub content must be specified.");
             }
 
             stubRequests.push(request);
 
-            if (done) {
-                sendStubs(stubRequests.map(function (stubRequest) {
-                    return stubRequest._addStubRequestBody;
-                }), function (err) {
-                    stubRequests.length = 0;
-                    done(err);
-                });
-            }
-
             return this;
         },
-        expect: function (request, done) {
+        expect: function (request) {
             if (!request._addStubRequestBody.times && (request._addStubRequestBody.times !== 0)) {
                 request._addStubRequestBody.times = 1;
             }
 
-            return this.stub(request, done);
+            return this.stub(request);
         },
         clearStubs: function (done) {
             clearStubs(done);
         },
         verifyExpectations: function (done) {
             verify(done);
+        },
+        run: function (next) {
+            sendStubs(stubRequests.map(function (stubRequest) {
+                return stubRequest._addStubRequestBody;
+
+            }), function (err) {
+                stubRequests.length = 0;
+                next(err);
+            });
         }
     };
 
