@@ -1,5 +1,5 @@
 /* jshint expr:true */
-describe("milli", function () {
+describe.skip("milli", function () {
     var request = superagent;
 
     before(function (done) {
