@@ -17,5 +17,10 @@
   "devDependencies": {
     "superagent": "~0.15.7",
     "sinon": "~1.7.3"
-  }
+  },
+  "homepage": "https://github.com/kelveden/milli",
+  "authors": [
+    "Alistair Dutton <kelveden@gmail.com>"
+  ],
+  "description": "Javascript client for Vanilli."
 }
