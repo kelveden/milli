@@ -73,6 +73,14 @@ module.exports = function (grunt) {
                     copy: false
                 }
             }
+        },
+        vanilli: {
+            options: {
+                port: 14000,
+                logLevel: "info"
+            },
+            start: {},
+            stop: {}
         }
     });
 
@@ -81,15 +89,16 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-bower-task');
+    grunt.loadNpmTasks('grunt-vanilli');
     grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-bump');
+    grunt.loadNpmTasks('grunt-bunyan');
 
     grunt.registerTask('tdd', [ 'jshint', 'karma:tdd:start', 'watch' ]);
     grunt.registerTask('tdd_rerun', [ 'jshint', 'karma:tdd:run' ]);
 
-    grunt.registerTask('build', [ 'jshint', 'karma:ci', 'uglify', 'copy' ]);
+    grunt.registerTask('build', [ 'jshint', 'bunyan', 'vanilli:start', 'karma:ci', 'vanilli:stop', 'uglify', 'copy' ]);
     grunt.registerTask('ci', [ 'bower', 'build' ]);
 
     grunt.registerTask('default', [ 'build' ]);
-
 };

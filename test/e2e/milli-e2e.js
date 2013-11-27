@@ -1,9 +1,10 @@
 /* jshint expr:true */
-describe.skip("milli", function () {
-    var request = superagent;
+describe("milli", function () {
+    var request = superagent,
+        vanilliPort = 14000;
 
     before(function (done) {
-        milli.configure({ port: 8081 });
+        milli.configure({ port: vanilliPort });
         done();
     });
 
@@ -43,7 +44,7 @@ describe.skip("milli", function () {
             milli.stub(onGetTo('/my/url').respondWith(234)
                     .body(expectedResponseBody, "application/json")).run(
                 function () {
-                    request.get("http://localhost:8081/my/url")
+                    request.get("http://localhost:" + vanilliPort + "/my/url")
                         .end(function (err, res) {
                             if (err) return done(err);
 
@@ -60,8 +61,8 @@ describe.skip("milli", function () {
 
             milli.stub(onDeleteTo('/my/url').respondWith(234)
                     .body(expectedResponseBody, "application/json")).run(
-                function (err) {
-                    request.del("http://localhost:8081/my/url")
+                function () {
+                    request.del("http://localhost:" + vanilliPort + "/my/url")
                         .end(function (err, res) {
                             if (err) return done(err);
 
@@ -82,7 +83,7 @@ describe.skip("milli", function () {
                     .respondWith(234)
                     .body(expectedResponseBody, "application/json")).run(
                 function () {
-                    request.put("http://localhost:8081/my/url")
+                    request.put("http://localhost:" + vanilliPort + "/my/url")
                         .send(expectedRequestBody)
                         .end(function (err, res) {
                             if (err) return done(err);
@@ -104,7 +105,7 @@ describe.skip("milli", function () {
                     .respondWith(234)
                     .body(expectedResponseBody, "application/json")).run(
                 function () {
-                    request.post("http://localhost:8081/my/url")
+                    request.post("http://localhost:" + vanilliPort + "/my/url")
                         .send(expectedRequestBody)
                         .end(function (err, res) {
                             if (err) return done(err);
@@ -120,7 +121,7 @@ describe.skip("milli", function () {
         it("will NOT be used to serve responses for requests that do not match", function (done) {
             milli.stub(onGetTo('/my/url').respondWith(234)).run(
                 function () {
-                    request.del("http://localhost:8081/my/url")
+                    request.del("http://localhost:" + vanilliPort + "/my/url")
                         .end(function (err, res) {
                             if (err) return done(err);
 
