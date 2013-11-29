@@ -111,6 +111,18 @@ describe("milli", function () {
             expect(stub._addStubRequestBody.criteria.headers['My-Header2']).to.equal(headerValue2);
         });
 
+        it("assigns the query params to the stub criteria", function () {
+            var param1 = "myvalue1",
+                param2 = "myvalue2",
+                stub = onGetTo(dummyUrl)
+                    .param('param1', param1)
+                    .param('param2', param2)
+                    .respondWith(dummyStatus);
+
+            expect(stub._addStubRequestBody.criteria.query.param1).to.equal(param1);
+            expect(stub._addStubRequestBody.criteria.query.param2).to.equal(param2);
+        });
+
         it("assigns the correct number of times that the stub can respond", function () {
             var times = 3,
                 stub = onGetTo(dummyUrl).respondWith(dummyStatus).times(times);

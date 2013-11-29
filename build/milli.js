@@ -45,6 +45,12 @@
             return this;
         };
 
+        this.param = function (name, value) {
+            request.criteria.query = request.criteria.query || {};
+            request.criteria.query[name] = value;
+            return this;
+        };
+
         this.respondWith = function (status) {
             return new StubRespondWith(status);
         };
