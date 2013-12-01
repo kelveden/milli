@@ -130,15 +130,16 @@
                 throw new Error("Stub content must be specified.");
             }
 
+            if (!request._addStubRequestBody.times && (request._addStubRequestBody.times !== 0)) {
+                request._addStubRequestBody.times = 1;
+            }
+
             stubRequests.push(request);
 
             return this;
         },
         expect: function (request) {
-            if (!request._addStubRequestBody.times && (request._addStubRequestBody.times !== 0)) {
-                request._addStubRequestBody.times = 1;
-            }
-
+            request._addStubRequestBody.expect = true;
             return this.stub(request);
         },
         clearStubs: function (done) {
