@@ -189,13 +189,13 @@ describe("milli", function () {
             server.respond();
         });
 
-        it("results in an error response for an invalid stub", function (done) {
+        it("results in an error for an invalid stub", function (done) {
             server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 400, {}, "" ]);
 
-            milli.stub(onGetTo().respondWith(200)).run(function (err) {
-                expect(err).to.match(/invalid/i);
+            expect(function () {
+                milli.stub(onGetTo().respondWith(200)).run(function () {});
                 done();
-            });
+            }).to.throw(/invalid/i);
 
             server.respond();
         });

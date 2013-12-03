@@ -154,7 +154,14 @@
 
             }), function (err) {
                 stubRequests.length = 0;
-                next(err);
+
+                if (err instanceof Error) {
+                    throw err;
+                } else if (err) {
+                    throw new Error(err);
+                } else {
+                    next(err);
+                }
             });
         }
     };
