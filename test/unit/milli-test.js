@@ -36,7 +36,7 @@ describe("milli", function () {
         it("assigns the response entity to the stub response", function () {
             var body = { myfield: "myvalue" },
                 contentType = "my/contenttype",
-                stub = onGetTo(dummyUrl)
+                stub = onGet(dummyUrl)
                     .respondWith(dummyStatus).entity(body, contentType);
 
             expect(stub.vanilliRequestBody.respondWith.body).to.deep.equal(body);
@@ -45,7 +45,7 @@ describe("milli", function () {
 
         it("assigns the response body to the stub response", function () {
             var body = { myfield: "myvalue" },
-                stub = onGetTo(dummyUrl)
+                stub = onGet(dummyUrl)
                     .respondWith(dummyStatus).body(body);
 
             expect(stub.vanilliRequestBody.respondWith.body).to.deep.equal(body);
@@ -53,7 +53,7 @@ describe("milli", function () {
 
         it("assigns the response content type to the stub response", function () {
             var contentType = "my/contenttype",
-                stub = onGetTo(dummyUrl)
+                stub = onGet(dummyUrl)
                     .respondWith(dummyStatus).contentType(contentType);
 
             expect(stub.vanilliRequestBody.respondWith.contentType).to.deep.equal(contentType);
@@ -61,7 +61,7 @@ describe("milli", function () {
 
         it("assigns the response status to the stub response", function () {
             var status = 234,
-                stub = onGetTo(dummyUrl).respondWith(status);
+                stub = onGet(dummyUrl).respondWith(status);
 
             expect(stub.vanilliRequestBody.respondWith.status).to.equal(status);
         });
@@ -69,7 +69,7 @@ describe("milli", function () {
         it("assigns the response headers to the stub response", function () {
             var headerValue1 = "myvalue1",
                 headerValue2 = "myvalue2",
-                stub = onGetTo(dummyUrl).respondWith(dummyStatus)
+                stub = onGet(dummyUrl).respondWith(dummyStatus)
                     .header('My-Header1', headerValue1)
                     .header('My-Header2', headerValue2);
 
@@ -79,14 +79,14 @@ describe("milli", function () {
 
         it("assigns the URL to the stub criteria", function () {
             var url = "/my/url",
-                stub = onGetTo(url).respondWith(dummyStatus);
+                stub = onGet(url).respondWith(dummyStatus);
 
             expect(stub.vanilliRequestBody.criteria.url).to.equal(url);
         });
 
         it("assigns the correct HTTP method to the stub criteria", function () {
             var method = "MYMETHOD",
-                stub = onRequestTo('MYMETHOD', dummyUrl).respondWith(dummyStatus);
+                stub = onRequest('MYMETHOD', dummyUrl).respondWith(dummyStatus);
 
             expect(stub.vanilliRequestBody.criteria.method).to.equal(method);
         });
@@ -94,7 +94,7 @@ describe("milli", function () {
         it("assigns the entity to the stub criteria", function () {
             var contentType = "my/contenttype",
                 body = { myfield: "myvalue" },
-                stub = onGetTo(dummyUrl).entity(body, contentType).respondWith(dummyStatus);
+                stub = onGet(dummyUrl).entity(body, contentType).respondWith(dummyStatus);
 
             expect(stub.vanilliRequestBody.criteria.body).to.deep.equal(body);
             expect(stub.vanilliRequestBody.criteria.contentType).to.equal(contentType);
@@ -102,14 +102,14 @@ describe("milli", function () {
 
         it("assigns the body to the stub criteria", function () {
             var body = { myfield: "myvalue" },
-                stub = onGetTo(dummyUrl).body(body).respondWith(dummyStatus);
+                stub = onGet(dummyUrl).body(body).respondWith(dummyStatus);
 
             expect(stub.vanilliRequestBody.criteria.body).to.deep.equal(body);
         });
 
         it("assigns the content type to the stub criteria", function () {
             var contentType = "my/contenttype",
-                stub = onGetTo(dummyUrl).contentType(contentType).respondWith(dummyStatus);
+                stub = onGet(dummyUrl).contentType(contentType).respondWith(dummyStatus);
 
             expect(stub.vanilliRequestBody.criteria.contentType).to.equal(contentType);
         });
@@ -117,7 +117,7 @@ describe("milli", function () {
         it("assigns the headers to the stub criteria", function () {
             var headerValue1 = "myvalue1",
                 headerValue2 = "myvalue2",
-                stub = onGetTo(dummyUrl)
+                stub = onGet(dummyUrl)
                     .header('My-Header1', headerValue1)
                     .header('My-Header2', headerValue2)
                     .respondWith(dummyStatus);
@@ -129,7 +129,7 @@ describe("milli", function () {
         it("assigns the query params to the stub criteria", function () {
             var param1 = "myvalue1",
                 param2 = "myvalue2",
-                stub = onGetTo(dummyUrl)
+                stub = onGet(dummyUrl)
                     .param('param1', param1)
                     .param('param2', param2)
                     .respondWith(dummyStatus);
@@ -140,13 +140,13 @@ describe("milli", function () {
 
         it("assigns the correct number of times that the stub can respond", function () {
             var times = 3,
-                stub = onGetTo(dummyUrl).respondWith(dummyStatus).times(times);
+                stub = onGet(dummyUrl).respondWith(dummyStatus).times(times);
 
             expect(stub.vanilliRequestBody.times).to.equal(times);
         });
 
         it("substitutes template placeholders if present", function () {
-            var stub = onGetTo("my/url/with/:myparam", {
+            var stub = onGet("my/url/with/:myparam", {
                 myparam: "myvalue"
             }).respondWith(dummyStatus);
 
@@ -155,13 +155,13 @@ describe("milli", function () {
 
         it("throws an error if a template placeholder has no substitution", function () {
             expect(function () {
-                onGetTo("my/url/with/:myparam", {});
+                onGet("my/url/with/:myparam", {});
             }).to.throw(/:myparam/);
         });
 
         it("considers template placeholders case-sensitively", function () {
             expect(function () {
-                onGetTo("my/url/with/:myparam", { MYPARAM: "myvalue" });
+                onGet("my/url/with/:myparam", { MYPARAM: "myvalue" });
             }).to.throw(/myparam/);
         });
     });
@@ -170,7 +170,7 @@ describe("milli", function () {
         it("can be used to add a single stub", function (done) {
             server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
 
-            milli.stub(onGetTo('/some/url').respondWith(200)).run(done);
+            milli.stub(onGet('/some/url').respondWith(200)).run(done);
 
             server.respond();
         });
@@ -178,13 +178,13 @@ describe("milli", function () {
         it("can be used to add a single expectation", function (done) {
             server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
 
-            milli.expect(onGetTo('/some/url').respondWith(200)).run(done);
+            milli.expect(onGet('/some/url').respondWith(200)).run(done);
 
             server.respond();
         });
 
         it("sets the 'times' of an expectation to 1 if not explicitly specified", function (done) {
-            var request = onGetTo('/some/url').respondWith(200);
+            var request = onGet('/some/url').respondWith(200);
             server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
 
             milli.expect(request).run(function () {
@@ -200,8 +200,8 @@ describe("milli", function () {
             server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
 
             milli
-                .stub(onGetTo('/some/url').respondWith(200))
-                .stub(onGetTo('/some/other/url').respondWith(200)).run(function () {
+                .stub(onGet('/some/url').respondWith(200))
+                .stub(onGet('/some/other/url').respondWith(200)).run(function () {
                     expect(vanilliSpy.calledOnce).to.be.truthy;
                     done();
                 });
@@ -214,9 +214,9 @@ describe("milli", function () {
             server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
 
             milli
-                .stub(onGetTo('/some/url').respondWith(200))
-                .expect(onGetTo('/some/other/url').respondWith(200).times(2))
-                .stub(onGetTo('/yet/another/url').respondWith(200)).run(function () {
+                .stub(onGet('/some/url').respondWith(200))
+                .expect(onGet('/some/other/url').respondWith(200).times(2))
+                .stub(onGet('/yet/another/url').respondWith(200)).run(function () {
                     expect(vanilliSpy.calledOnce).to.be.truthy;
                     done();
                 });
@@ -226,7 +226,7 @@ describe("milli", function () {
 
         it("throws an error for a missing url", function () {
             expect(function () {
-                milli.stub(onGetTo().respondWith(200)).run();
+                milli.stub(onGet().respondWith(200)).run();
             }).to.throw(/url/i);
         });
 

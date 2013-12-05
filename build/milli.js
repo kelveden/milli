@@ -188,7 +188,7 @@
         };
     };
 
-    context.onRequestTo = function (method, url, substitutionData) {
+    context.onRequest = function (method, url, substitutionData) {
         function substituteTemplatePlaceholders(uriTemplate, substitutionData) {
             return uriTemplate.replace(/:[a-zA-Z][0-9a-zA-Z]+/g, function (placeholder) {
                 var paramName = placeholder.substr(1),
@@ -209,20 +209,20 @@
         return new Stub(method, substituteTemplatePlaceholders(url, substitutionData || {}));
     };
 
-    context.onGetTo = function (url, substitutionData) {
-        return context.onRequestTo('GET', url, substitutionData);
+    context.onGet = function (url, substitutionData) {
+        return context.onRequest('GET', url, substitutionData);
     };
 
-    context.onDeleteTo = function (url, substitutionData) {
-        return context.onRequestTo('DELETE', url, substitutionData);
+    context.onDelete = function (url, substitutionData) {
+        return context.onRequest('DELETE', url, substitutionData);
     };
 
-    context.onPutTo = function (url, substitutionData) {
-        return context.onRequestTo('PUT', url, substitutionData);
+    context.onPut = function (url, substitutionData) {
+        return context.onRequest('PUT', url, substitutionData);
     };
 
-    context.onPostTo = function (url, substitutionData) {
-        return context.onRequestTo('POST', url, substitutionData);
+    context.onPost = function (url, substitutionData) {
+        return context.onRequest('POST', url, substitutionData);
     };
 
 })(window.exports ? window.exports : window);

@@ -24,12 +24,12 @@ describe("milli", function () {
         });
 
         it("can be recorded", function (done) {
-            milli.stub(onGetTo('/my/url')
+            milli.stub(onGet('/my/url')
                 .respondWith(234)).run(done);
         });
 
         it("can be used to verify expectations", function (done) {
-            milli.expect(onGetTo('/my/url').respondWith(234).times(2)).run(
+            milli.expect(onGet('/my/url').respondWith(234).times(2)).run(
                 function () {
                     milli.verifyExpectations(function (err) {
                         expect(err).to.exist;
@@ -42,7 +42,7 @@ describe("milli", function () {
         it("will be used to serve the response for matching GET requests", function (done) {
             var expectedResponseBody = { myfield: "myvalue" };
 
-            milli.stub(onGetTo('/my/url').respondWith(234)
+            milli.stub(onGet('/my/url').respondWith(234)
                     .entity(expectedResponseBody, "application/json")).run(
                 function () {
                     request.get("http://localhost:" + vanilliPort + "/my/url")
@@ -60,7 +60,7 @@ describe("milli", function () {
         it("will be used to serve the response for matching DELETE requests", function (done) {
             var expectedResponseBody = { myfield: "myvalue" };
 
-            milli.stub(onDeleteTo('/my/url').respondWith(234)
+            milli.stub(onDelete('/my/url').respondWith(234)
                     .entity(expectedResponseBody, "application/json")).run(
                 function () {
                     request.del("http://localhost:" + vanilliPort + "/my/url")
@@ -79,7 +79,7 @@ describe("milli", function () {
             var expectedRequestBody = { myfield1: "myvalue1" },
                 expectedResponseBody = { myfield2: "myvalue2" };
 
-            milli.stub(onPutTo('/my/url')
+            milli.stub(onPut('/my/url')
                     .entity(expectedRequestBody, "application/json")
                     .respondWith(234)
                     .entity(expectedResponseBody, "application/json")).run(
@@ -101,7 +101,7 @@ describe("milli", function () {
             var expectedRequestBody = { myfield1: "myvalue1" },
                 expectedResponseBody = { myfield2: "myvalue2" };
 
-            milli.stub(onPostTo('/my/url')
+            milli.stub(onPost('/my/url')
                     .entity(expectedRequestBody, "application/json")
                     .respondWith(234)
                     .entity(expectedResponseBody, "application/json")).run(
@@ -120,7 +120,7 @@ describe("milli", function () {
         });
 
         it("will NOT be used to serve responses for requests that do not match", function (done) {
-            milli.stub(onGetTo('/my/url').respondWith(234)).run(
+            milli.stub(onGet('/my/url').respondWith(234)).run(
                 function () {
                     request.del("http://localhost:" + vanilliPort + "/my/url")
                         .end(function (err, res) {
