@@ -262,7 +262,7 @@ describe("milli", function () {
         });
     });
 
-    describe('verifier', function () {
+    describe('expectation verifier', function () {
         it("causes error in callback if result contains verification errors", function (done) {
             server.respondWith("GET", "http://localhost:" + vanilliPort + "/_vanilli/stubs/verification", [ 200, {},
                 JSON.stringify({
@@ -293,6 +293,93 @@ describe("milli", function () {
             });
 
             server.respond();
+        });
+    });
+
+    describe('REST resource registry', function () {
+        it("adds a valid REST resource as a globally available stub builder", function () {
+            var resource = {
+                myResource: {
+                    url: "/my/url"
+                }
+            };
+
+            milli.registerResources(resource);
+
+            expect(myResource).to.exist;
+            expect(myResource).is.equal(resource.myResource);
+        });
+
+        it("will accept a REST resource expressed simply as a URL", function () {
+            milli.registerResources({
+                myResource: "/my/url"
+            });
+
+            expect(myResource).to.exist;
+        });
+
+        it("will not accept a REST resource without a uri template", function () {
+            expect(function () {
+                milli.registerResources({
+                    myResource: {}
+                });
+            }).to.throw(/template/i);
+        });
+
+        it("adds a valid REST resource to the existing resources", function () {
+            milli.registerResources({
+                myResource1: {
+                    url: "/my/url"
+                }
+            });
+            milli.registerResources({
+                myResource2: {
+                    url: "/my/url"
+                }
+            });
+
+            expect(myResource1).to.exist;
+            expect(myResource2).to.exist;
+        });
+
+        it("can be used to default a response content type for a stub", function () {
+            milli.registerResources({
+                myResource1: {
+                    url: "/my/url",
+                    produces: "my/contenttype"
+                }
+            });
+
+            var stub = onGet(myResource1).respondWith(dummyStatus).body("somebody");
+
+            expect(stub.vanilliRequestBody.respondWith.contentType).to.equal("my/contenttype");
+        });
+
+        it("can be used to default a request content type for a stub", function () {
+            milli.registerResources({
+                myResource1: {
+                    url: "/my/url",
+                    consumes: "my/contenttype"
+                }
+            });
+
+            var stub = onPut(myResource1).body("somebody").respondWith(dummyStatus);
+
+            expect(stub.vanilliRequestBody.criteria.contentType).to.equal("my/contenttype");
+        });
+
+        it("can be used to substitute a uri template with its placeholders", function () {
+            milli.registerResources({
+                myResource1: {
+                    url: "/my/url/:param1/:param2"
+                }
+            });
+
+            var stub = onGet(myResource1, {
+                param1: "value1", param2: "value2"
+            }).respondWith(dummyStatus).body("somebody");
+
+            expect(stub.vanilliRequestBody.criteria.url).to.equal("/my/url/value1/value2");
         });
     });
 });

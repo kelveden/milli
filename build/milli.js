@@ -1,7 +1,7 @@
 (function (context) {
     var vanilliPort, xhr, stubs = [];
 
-    function Stub(method, url) {
+    function Stub(method, urlOrResource) {
         function RespondWith(status) {
             stub.respondWith.status = status;
 
@@ -13,6 +13,9 @@
 
             this.body = function (body) {
                 stub.respondWith.body = body;
+                if (!stub.respondWith.contentType && defaultResponseContentType) {
+                    stub.respondWith.contentType = defaultResponseContentType;
+                }
                 return this;
             };
 
@@ -43,6 +46,9 @@
 
         this.body = function (body) {
             stub.criteria.body = body;
+            if (!stub.criteria.contentType && defaultRequestContentType) {
+                stub.criteria.contentType = defaultRequestContentType;
+            }
             return this;
         };
 
@@ -68,12 +74,21 @@
         };
 
         var stub = {
-            criteria: {
-                url: url,
-                method: method
+                criteria: {
+                    method: method
+                },
+                respondWith: {}
             },
-            respondWith: {}
-        };
+            defaultRequestContentType,
+            defaultResponseContentType;
+
+        if (typeof urlOrResource === 'string') {
+            stub.criteria.url = urlOrResource;
+        } else {
+            stub.criteria.url = urlOrResource.url;
+            defaultRequestContentType = urlOrResource.consumes;
+            defaultResponseContentType = urlOrResource.produces;
+        }
     }
 
     function sendStubs(stub, done) {
@@ -184,11 +199,24 @@
                         next(err);
                     }
                 });
+            },
+            registerResources: function (resources) {
+                for (var resourceName in resources) {
+                    if (resources.hasOwnProperty(resourceName)) {
+                        var resource = resources[resourceName];
+
+                        if ((typeof resource !== 'string') && (!resource.url)) {
+                            throw new Error("A uri template must be specified for the resource.");
+                        }
+
+                        context[resourceName] = resource;
+                    }
+                }
             }
         };
     };
 
-    context.onRequest = function (method, url, substitutionData) {
+    context.onRequest = function (method, urlOrResource, substitutionData) {
         function substituteTemplatePlaceholders(uriTemplate, substitutionData) {
             return uriTemplate.replace(/:[a-zA-Z][0-9a-zA-Z]+/g, function (placeholder) {
                 var paramName = placeholder.substr(1),
@@ -202,27 +230,33 @@
             });
         }
 
-        if (!url) {
+        if (!urlOrResource) {
             throw new Error("The stub url must be specified.");
         }
 
-        return new Stub(method, substituteTemplatePlaceholders(url, substitutionData || {}));
+        if (typeof urlOrResource !== 'string') {
+            urlOrResource.url = substituteTemplatePlaceholders(urlOrResource.url, substitutionData || {});
+        } else {
+            urlOrResource = substituteTemplatePlaceholders(urlOrResource, substitutionData || {});
+        }
+
+        return new Stub(method, urlOrResource);
     };
 
-    context.onGet = function (url, substitutionData) {
-        return context.onRequest('GET', url, substitutionData);
+    context.onGet = function (urlOrResource, substitutionData) {
+        return context.onRequest('GET', urlOrResource, substitutionData);
     };
 
-    context.onDelete = function (url, substitutionData) {
-        return context.onRequest('DELETE', url, substitutionData);
+    context.onDelete = function (urlOrResource, substitutionData) {
+        return context.onRequest('DELETE', urlOrResource, substitutionData);
     };
 
-    context.onPut = function (url, substitutionData) {
-        return context.onRequest('PUT', url, substitutionData);
+    context.onPut = function (urlOrResource, substitutionData) {
+        return context.onRequest('PUT', urlOrResource, substitutionData);
     };
 
-    context.onPost = function (url, substitutionData) {
-        return context.onRequest('POST', url, substitutionData);
+    context.onPost = function (urlOrResource, substitutionData) {
+        return context.onRequest('POST', urlOrResource, substitutionData);
     };
 
 })(window.exports ? window.exports : window);
