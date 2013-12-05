@@ -5,7 +5,7 @@
         function RespondWith(status) {
             stub.respondWith.status = status;
 
-            this.body = function (body, contentType) {
+            this.entity = function (body, contentType) {
                 stub.respondWith.body = body;
                 stub.respondWith.contentType = contentType;
                 return this;
@@ -25,7 +25,7 @@
             this.vanilliRequestBody = stub;
         }
 
-        this.body = function (body, contentType) {
+        this.entity = function (body, contentType) {
             stub.criteria.body = body;
             stub.criteria.contentType = contentType;
             return this;

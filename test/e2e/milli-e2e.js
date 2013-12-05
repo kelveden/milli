@@ -42,7 +42,7 @@ describe("milli", function () {
             var expectedResponseBody = { myfield: "myvalue" };
 
             milli.stub(onGetTo('/my/url').respondWith(234)
-                    .body(expectedResponseBody, "application/json")).run(
+                    .entity(expectedResponseBody, "application/json")).run(
                 function () {
                     request.get("http://localhost:" + vanilliPort + "/my/url")
                         .end(function (err, res) {
@@ -60,7 +60,7 @@ describe("milli", function () {
             var expectedResponseBody = { myfield: "myvalue" };
 
             milli.stub(onDeleteTo('/my/url').respondWith(234)
-                    .body(expectedResponseBody, "application/json")).run(
+                    .entity(expectedResponseBody, "application/json")).run(
                 function () {
                     request.del("http://localhost:" + vanilliPort + "/my/url")
                         .end(function (err, res) {
@@ -79,9 +79,9 @@ describe("milli", function () {
                 expectedResponseBody = { myfield2: "myvalue2" };
 
             milli.stub(onPutTo('/my/url')
-                    .body(expectedRequestBody, "application/json")
+                    .entity(expectedRequestBody, "application/json")
                     .respondWith(234)
-                    .body(expectedResponseBody, "application/json")).run(
+                    .entity(expectedResponseBody, "application/json")).run(
                 function () {
                     request.put("http://localhost:" + vanilliPort + "/my/url")
                         .send(expectedRequestBody)
@@ -101,9 +101,9 @@ describe("milli", function () {
                 expectedResponseBody = { myfield2: "myvalue2" };
 
             milli.stub(onPostTo('/my/url')
-                    .body(expectedRequestBody, "application/json")
+                    .entity(expectedRequestBody, "application/json")
                     .respondWith(234)
-                    .body(expectedResponseBody, "application/json")).run(
+                    .entity(expectedResponseBody, "application/json")).run(
                 function () {
                     request.post("http://localhost:" + vanilliPort + "/my/url")
                         .send(expectedRequestBody)
