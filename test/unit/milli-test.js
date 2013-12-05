@@ -34,10 +34,20 @@ describe("milli", function () {
     });
 
     describe("stub builder", function () {
+        it("assigns the response entity to the stub response", function () {
+            var body = { myfield: "myvalue" },
+                contentType = "my/contenttype",
+                stub = onGetTo(dummyUrl)
+                    .respondWith(dummyStatus).entity(body, contentType);
+
+            expect(stub.vanilliRequestBody.respondWith.body).to.deep.equal(body);
+            expect(stub.vanilliRequestBody.respondWith.contentType).to.deep.equal(contentType);
+        });
+
         it("assigns the response body to the stub response", function () {
             var body = { myfield: "myvalue" },
                 stub = onGetTo(dummyUrl)
-                    .respondWith(dummyStatus).entity(body, dummyContentType);
+                    .respondWith(dummyStatus).body(body);
 
             expect(stub.vanilliRequestBody.respondWith.body).to.deep.equal(body);
         });
@@ -45,7 +55,7 @@ describe("milli", function () {
         it("assigns the response content type to the stub response", function () {
             var contentType = "my/contenttype",
                 stub = onGetTo(dummyUrl)
-                    .respondWith(dummyStatus).entity(dummyEntity, contentType);
+                    .respondWith(dummyStatus).contentType(contentType);
 
             expect(stub.vanilliRequestBody.respondWith.contentType).to.deep.equal(contentType);
         });
@@ -82,16 +92,25 @@ describe("milli", function () {
             expect(stub.vanilliRequestBody.criteria.method).to.equal(method);
         });
 
+        it("assigns the entity to the stub criteria", function () {
+            var contentType = "my/contenttype",
+                body = { myfield: "myvalue" },
+                stub = onGetTo(dummyUrl).entity(body, contentType).respondWith(dummyStatus);
+
+            expect(stub.vanilliRequestBody.criteria.body).to.deep.equal(body);
+            expect(stub.vanilliRequestBody.criteria.contentType).to.equal(contentType);
+        });
+
         it("assigns the body to the stub criteria", function () {
             var body = { myfield: "myvalue" },
-                stub = onGetTo(dummyUrl).entity(body, dummyContentType).respondWith(dummyStatus);
+                stub = onGetTo(dummyUrl).body(body).respondWith(dummyStatus);
 
             expect(stub.vanilliRequestBody.criteria.body).to.deep.equal(body);
         });
 
         it("assigns the content type to the stub criteria", function () {
             var contentType = "my/contenttype",
-                stub = onGetTo(dummyUrl).entity(dummyEntity, contentType).respondWith(dummyStatus);
+                stub = onGetTo(dummyUrl).contentType(contentType).respondWith(dummyStatus);
 
             expect(stub.vanilliRequestBody.criteria.contentType).to.equal(contentType);
         });

@@ -11,6 +11,16 @@
                 return this;
             };
 
+            this.body = function (body) {
+                stub.respondWith.body = body;
+                return this;
+            };
+
+            this.contentType = function (contentType) {
+                stub.respondWith.contentType = contentType;
+                return this;
+            };
+
             this.header = function (name, value) {
                 stub.respondWith.headers = stub.respondWith.headers || {};
                 stub.respondWith.headers[name] = value;
@@ -27,6 +37,16 @@
 
         this.entity = function (body, contentType) {
             stub.criteria.body = body;
+            stub.criteria.contentType = contentType;
+            return this;
+        };
+
+        this.body = function (body) {
+            stub.criteria.body = body;
+            return this;
+        };
+
+        this.contentType = function (contentType) {
             stub.criteria.contentType = contentType;
             return this;
         };
