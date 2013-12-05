@@ -199,7 +199,7 @@
                 }
             });
         },
-        registerResources: function (resources) {
+        registerApi: function (resources) {
             for (var resourceName in resources) {
                 if (resources.hasOwnProperty(resourceName)) {
                     var resource = resources[resourceName];

@@ -303,14 +303,14 @@ describe("milli", function () {
                 }
             };
 
-            milli.registerResources(resource);
+            milli.registerApi(resource);
 
             expect(myResource).to.exist;
             expect(myResource).is.equal(resource.myResource);
         });
 
         it("will accept a REST resource expressed simply as a URL", function () {
-            milli.registerResources({
+            milli.registerApi({
                 myResource: "/my/url"
             });
 
@@ -319,19 +319,19 @@ describe("milli", function () {
 
         it("will not accept a REST resource without a uri template", function () {
             expect(function () {
-                milli.registerResources({
+                milli.registerApi({
                     myResource: {}
                 });
             }).to.throw(/template/i);
         });
 
         it("adds a valid REST resource to the existing resources", function () {
-            milli.registerResources({
+            milli.registerApi({
                 myResource1: {
                     url: "/my/url"
                 }
             });
-            milli.registerResources({
+            milli.registerApi({
                 myResource2: {
                     url: "/my/url"
                 }
@@ -342,7 +342,7 @@ describe("milli", function () {
         });
 
         it("can be used to default a response content type for a stub", function () {
-            milli.registerResources({
+            milli.registerApi({
                 myResource1: {
                     url: "/my/url",
                     produces: "my/contenttype"
@@ -355,7 +355,7 @@ describe("milli", function () {
         });
 
         it("can be used to default a request content type for a stub", function () {
-            milli.registerResources({
+            milli.registerApi({
                 myResource1: {
                     url: "/my/url",
                     consumes: "my/contenttype"
@@ -368,7 +368,7 @@ describe("milli", function () {
         });
 
         it("can be used to substitute a uri template with its placeholders", function () {
-            milli.registerResources({
+            milli.registerApi({
                 myResource1: {
                     url: "/my/url/:param1/:param2"
                 }
