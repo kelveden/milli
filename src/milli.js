@@ -56,6 +56,19 @@
         };
     }
 
+    function substituteTemplatePlaceholders(uriTemplate, substitutionData) {
+        return uriTemplate.replace(/:[a-zA-Z][0-9a-zA-Z]+/g, function (placeholder) {
+            var paramName = placeholder.substr(1),
+                paramValue = substitutionData[paramName];
+
+            if (paramValue === undefined) {
+                throw new Error("Could not find substitution for placeholder '" + placeholder + "'.");
+            }
+
+            return paramValue;
+        });
+    }
+
     function sendStubs(stub, done) {
         xhr.open("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", true);
 
@@ -166,24 +179,28 @@
         }
     };
 
-    context.onRequestTo = function (method, url) {
-        return new Stub(method, url);
+    context.onRequestTo = function (method, url, substitutionData) {
+        if (!url) {
+            throw new Error("The stub url must be specified.");
+        }
+
+        return new Stub(method, substituteTemplatePlaceholders(url, substitutionData || {}));
     };
 
-    context.onGetTo = function (url) {
-        return context.onRequestTo('GET', url);
+    context.onGetTo = function (url, substitutionData) {
+        return context.onRequestTo('GET', url, substitutionData);
     };
 
-    context.onDeleteTo = function (url) {
-        return context.onRequestTo('DELETE', url);
+    context.onDeleteTo = function (url, substitutionData) {
+        return context.onRequestTo('DELETE', url, substitutionData);
     };
 
-    context.onPutTo = function (url) {
-        return context.onRequestTo('PUT', url);
+    context.onPutTo = function (url, substitutionData) {
+        return context.onRequestTo('PUT', url, substitutionData);
     };
 
-    context.onPostTo = function (url) {
-        return context.onRequestTo('POST', url);
+    context.onPostTo = function (url, substitutionData) {
+        return context.onRequestTo('POST', url, substitutionData);
     };
 
 })(window.exports ? window.exports : window);

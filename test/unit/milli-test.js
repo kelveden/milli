@@ -1,8 +1,10 @@
 /* jshint expr:true */
 describe("milli", function () {
     var server, vanilliPort = 1234,
-        dummyDone = function () {
-        };
+        dummyUrl = "/some/url",
+        dummyStatus = 234,
+        dummyContentType = "some/contenttype",
+        dummyEntity = { some: "data" };
 
     beforeEach(function () {
         server = sinon.fakeServer.create();
@@ -32,11 +34,6 @@ describe("milli", function () {
     });
 
     describe("stub builder", function () {
-        var dummyUrl = "/some/url",
-            dummyStatus = 234,
-            dummyContentType = "some/contenttype",
-            dummyEntity = { some: "data" };
-
         it("assigns the response body to the stub response", function () {
             var entity = { myfield: "myvalue" },
                 stub = onGetTo(dummyUrl)
@@ -129,6 +126,26 @@ describe("milli", function () {
 
             expect(stub.vanilliRequestBody.times).to.equal(times);
         });
+
+        it("substitutes template placeholders if present", function () {
+            var stub = onGetTo("my/url/with/:myparam", {
+                myparam: "myvalue"
+            }).respondWith(dummyStatus);
+
+            expect(stub.vanilliRequestBody.criteria.url).to.equal("my/url/with/myvalue");
+        });
+
+        it("throws an error if a template placeholder has no substitution", function () {
+            expect(function () {
+                onGetTo("my/url/with/:myparam", {});
+            }).to.throw(/:myparam/);
+        });
+
+        it("considers template placeholders case-sensitively", function () {
+            expect(function () {
+                onGetTo("my/url/with/:myparam", { MYPARAM: "myvalue" });
+            }).to.throw(/myparam/);
+        });
     });
 
     describe("stub adder", function () {
@@ -189,16 +206,10 @@ describe("milli", function () {
             server.respond();
         });
 
-        it("results in an error for an invalid stub", function (done) {
-            server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 400, {}, "" ]);
-
+        it("throws an error for a missing url", function () {
             expect(function () {
-                milli.stub(onGetTo().respondWith(200)).run(function () {
-                });
-                done();
-            }).to.throw(/invalid/i);
-
-            server.respond();
+                milli.stub(onGetTo().respondWith(200)).run();
+            }).to.throw(/url/i);
         });
 
         it("throws an error if the stub content is missing", function () {
