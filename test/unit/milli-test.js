@@ -2,12 +2,11 @@
 describe("milli", function () {
     var server, vanilliPort = 1234,
         dummyUrl = "/some/url",
-        dummyStatus = 234,
-        milli;
+        dummyStatus = 234;
 
     beforeEach(function () {
         server = sinon.fakeServer.create();
-        milli = new Milli({ port: vanilliPort });
+        milli.configure({ port: vanilliPort });
     });
 
     afterEach(function () {
@@ -15,19 +14,19 @@ describe("milli", function () {
     });
 
     it("can be configured", function () {
-        new Milli({ port: 1234 });
+        milli.configure({ port: 1234 });
     });
 
     describe("configuration", function () {
         it("throws an error if no config object is specified", function () {
             expect(function () {
-                new Milli();
+                milli.configure();
             }).to.throw(/config /i);
         });
 
         it("throws an error if no port is specified", function () {
             expect(function () {
-                new Milli({});
+                milli.configure({});
             }).to.throw(/port/i);
         });
     });

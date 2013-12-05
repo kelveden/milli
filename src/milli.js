@@ -147,73 +147,71 @@
         xhr.send();
     }
 
-    context.Milli = function (config) {
+    context.milli = {
+        configure: function (config) {
+            if (!config) {
+                throw new Error("Config must be specified.");
+            }
 
-        if (!config) {
-            throw new Error("Config must be specified.");
-        }
+            if (!config.port) {
+                throw new Error("config.port must be specified.");
+            }
 
-        if (!config.port) {
-            throw new Error("config.port must be specified.");
-        }
+            vanilliPort = config.port;
+            xhr = new XMLHttpRequest();
+        },
+        stub: function (stub) {
+            if (!stub) {
+                throw new Error("Stub content must be specified.");
+            }
 
-        vanilliPort = config.port;
-        xhr = new XMLHttpRequest();
+            if (!stub.vanilliRequestBody.times && (stub.vanilliRequestBody.times !== 0)) {
+                stub.vanilliRequestBody.times = 1;
+            }
 
-        return {
-            stub: function (stub) {
-                if (!stub) {
-                    throw new Error("Stub content must be specified.");
+            stubs.push(stub);
+
+            return this;
+        },
+        expect: function (stub) {
+            stub.vanilliRequestBody.expect = true;
+            return this.stub(stub);
+        },
+        clearStubs: function (done) {
+            clearStubs(done);
+        },
+        verifyExpectations: function (done) {
+            verify(done);
+        },
+        run: function (next) {
+            sendStubs(stubs.map(function (stub) {
+                return stub.vanilliRequestBody;
+
+            }), function (err) {
+                stubs.length = 0;
+
+                if (err instanceof Error) {
+                    throw err;
+                } else if (err) {
+                    throw new Error(err);
+                } else {
+                    next(err);
                 }
+            });
+        },
+        registerResources: function (resources) {
+            for (var resourceName in resources) {
+                if (resources.hasOwnProperty(resourceName)) {
+                    var resource = resources[resourceName];
 
-                if (!stub.vanilliRequestBody.times && (stub.vanilliRequestBody.times !== 0)) {
-                    stub.vanilliRequestBody.times = 1;
-                }
-
-                stubs.push(stub);
-
-                return this;
-            },
-            expect: function (stub) {
-                stub.vanilliRequestBody.expect = true;
-                return this.stub(stub);
-            },
-            clearStubs: function (done) {
-                clearStubs(done);
-            },
-            verifyExpectations: function (done) {
-                verify(done);
-            },
-            run: function (next) {
-                sendStubs(stubs.map(function (stub) {
-                    return stub.vanilliRequestBody;
-
-                }), function (err) {
-                    stubs.length = 0;
-
-                    if (err instanceof Error) {
-                        throw err;
-                    } else if (err) {
-                        throw new Error(err);
-                    } else {
-                        next(err);
+                    if ((typeof resource !== 'string') && (!resource.url)) {
+                        throw new Error("A uri template must be specified for the resource.");
                     }
-                });
-            },
-            registerResources: function (resources) {
-                for (var resourceName in resources) {
-                    if (resources.hasOwnProperty(resourceName)) {
-                        var resource = resources[resourceName];
 
-                        if ((typeof resource !== 'string') && (!resource.url)) {
-                            throw new Error("A uri template must be specified for the resource.");
-                        }
-
-                        context[resourceName] = resource;
-                    }
+                    context[resourceName] = resource;
                 }
             }
-        };
+        }
     };
 
     context.onRequest = function (method, urlOrResource, substitutionData) {
