@@ -1,58 +1,58 @@
 (function (context) {
-    var vanilliPort, xhr, stubRequests = [];
+    var vanilliPort, xhr, stubs = [];
 
-    function AddStubRequest(method, url) {
-        function StubRespondWith(status) {
-            request.respondWith.status = status;
+    function Stub(method, url) {
+        function RespondWith(status) {
+            stub.respondWith.status = status;
 
             this.body = function (body, contentType) {
-                request.respondWith.body = body;
-                request.respondWith.contentType = contentType;
+                stub.respondWith.body = body;
+                stub.respondWith.contentType = contentType;
                 return this;
             };
 
             this.header = function (name, value) {
-                request.respondWith.headers = request.respondWith.headers || {};
-                request.respondWith.headers[name] = value;
+                stub.respondWith.headers = stub.respondWith.headers || {};
+                stub.respondWith.headers[name] = value;
                 return this;
             };
 
             this.times = function (times) {
-                request.times = times;
+                stub.times = times;
                 return this;
             };
 
-            this._addStubRequestBody = request;
+            this.vanilliRequestBody = stub;
         }
 
-        var request = {
+        this.body = function (body, contentType) {
+            stub.criteria.body = body;
+            stub.criteria.contentType = contentType;
+            return this;
+        };
+
+        this.header = function (name, value) {
+            stub.criteria.headers = stub.criteria.headers || {};
+            stub.criteria.headers[name] = value;
+            return this;
+        };
+
+        this.param = function (name, value) {
+            stub.criteria.query = stub.criteria.query || {};
+            stub.criteria.query[name] = value;
+            return this;
+        };
+
+        this.respondWith = function (status) {
+            return new RespondWith(status);
+        };
+
+        var stub = {
             criteria: {
                 url: url,
                 method: method
             },
             respondWith: {}
-        };
-
-        this.body = function (body, contentType) {
-            request.criteria.body = body;
-            request.criteria.contentType = contentType;
-            return this;
-        };
-
-        this.header = function (name, value) {
-            request.criteria.headers = request.criteria.headers || {};
-            request.criteria.headers[name] = value;
-            return this;
-        };
-
-        this.param = function (name, value) {
-            request.criteria.query = request.criteria.query || {};
-            request.criteria.query[name] = value;
-            return this;
-        };
-
-        this.respondWith = function (status) {
-            return new StubRespondWith(status);
         };
     }
 
@@ -125,22 +125,22 @@
             vanilliPort = config.port;
             xhr = new XMLHttpRequest();
         },
-        stub: function (request) {
-            if (!request) {
+        stub: function (stub) {
+            if (!stub) {
                 throw new Error("Stub content must be specified.");
             }
 
-            if (!request._addStubRequestBody.times && (request._addStubRequestBody.times !== 0)) {
-                request._addStubRequestBody.times = 1;
+            if (!stub.vanilliRequestBody.times && (stub.vanilliRequestBody.times !== 0)) {
+                stub.vanilliRequestBody.times = 1;
             }
 
-            stubRequests.push(request);
+            stubs.push(stub);
 
             return this;
         },
-        expect: function (request) {
-            request._addStubRequestBody.expect = true;
-            return this.stub(request);
+        expect: function (stub) {
+            stub.vanilliRequestBody.expect = true;
+            return this.stub(stub);
         },
         clearStubs: function (done) {
             clearStubs(done);
@@ -149,11 +149,11 @@
             verify(done);
         },
         run: function (next) {
-            sendStubs(stubRequests.map(function (stubRequest) {
-                return stubRequest._addStubRequestBody;
+            sendStubs(stubs.map(function (stub) {
+                return stub.vanilliRequestBody;
 
             }), function (err) {
-                stubRequests.length = 0;
+                stubs.length = 0;
 
                 if (err instanceof Error) {
                     throw err;
@@ -167,7 +167,7 @@
     };
 
     context.onRequestTo = function (method, url) {
-        return new AddStubRequest(method, url);
+        return new Stub(method, url);
     };
 
     context.onGetTo = function (url) {

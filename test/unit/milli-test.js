@@ -42,7 +42,7 @@ describe("milli", function () {
                 stub = onGetTo(dummyUrl)
                     .respondWith(dummyStatus).body(entity, dummyContentType);
 
-            expect(stub._addStubRequestBody.respondWith.body).to.deep.equal(entity);
+            expect(stub.vanilliRequestBody.respondWith.body).to.deep.equal(entity);
         });
 
         it("assigns the response content type to the stub response", function () {
@@ -50,14 +50,14 @@ describe("milli", function () {
                 stub = onGetTo(dummyUrl)
                     .respondWith(dummyStatus).body(dummyEntity, contentType);
 
-            expect(stub._addStubRequestBody.respondWith.contentType).to.deep.equal(contentType);
+            expect(stub.vanilliRequestBody.respondWith.contentType).to.deep.equal(contentType);
         });
 
         it("assigns the response status to the stub response", function () {
             var status = 234,
                 stub = onGetTo(dummyUrl).respondWith(status);
 
-            expect(stub._addStubRequestBody.respondWith.status).to.equal(status);
+            expect(stub.vanilliRequestBody.respondWith.status).to.equal(status);
         });
 
         it("assigns the response headers to the stub response", function () {
@@ -67,36 +67,36 @@ describe("milli", function () {
                     .header('My-Header1', headerValue1)
                     .header('My-Header2', headerValue2);
 
-            expect(stub._addStubRequestBody.respondWith.headers['My-Header1']).to.equal(headerValue1);
-            expect(stub._addStubRequestBody.respondWith.headers['My-Header2']).to.equal(headerValue2);
+            expect(stub.vanilliRequestBody.respondWith.headers['My-Header1']).to.equal(headerValue1);
+            expect(stub.vanilliRequestBody.respondWith.headers['My-Header2']).to.equal(headerValue2);
         });
 
         it("assigns the URL to the stub criteria", function () {
             var url = "/my/url",
                 stub = onGetTo(url).respondWith(dummyStatus);
 
-            expect(stub._addStubRequestBody.criteria.url).to.equal(url);
+            expect(stub.vanilliRequestBody.criteria.url).to.equal(url);
         });
 
         it("assigns the correct HTTP method to the stub criteria", function () {
             var method = "MYMETHOD",
                 stub = onRequestTo('MYMETHOD', dummyUrl).respondWith(dummyStatus);
 
-            expect(stub._addStubRequestBody.criteria.method).to.equal(method);
+            expect(stub.vanilliRequestBody.criteria.method).to.equal(method);
         });
 
         it("assigns the body to the stub criteria", function () {
             var body = { myfield: "myvalue" },
                 stub = onGetTo(dummyUrl).body(body, dummyContentType).respondWith(dummyStatus);
 
-            expect(stub._addStubRequestBody.criteria.body).to.deep.equal(body);
+            expect(stub.vanilliRequestBody.criteria.body).to.deep.equal(body);
         });
 
         it("assigns the content type to the stub criteria", function () {
             var contentType = "my/contenttype",
                 stub = onGetTo(dummyUrl).body(dummyEntity, contentType).respondWith(dummyStatus);
 
-            expect(stub._addStubRequestBody.criteria.contentType).to.equal(contentType);
+            expect(stub.vanilliRequestBody.criteria.contentType).to.equal(contentType);
         });
 
         it("assigns the headers to the stub criteria", function () {
@@ -107,8 +107,8 @@ describe("milli", function () {
                     .header('My-Header2', headerValue2)
                     .respondWith(dummyStatus);
 
-            expect(stub._addStubRequestBody.criteria.headers['My-Header1']).to.equal(headerValue1);
-            expect(stub._addStubRequestBody.criteria.headers['My-Header2']).to.equal(headerValue2);
+            expect(stub.vanilliRequestBody.criteria.headers['My-Header1']).to.equal(headerValue1);
+            expect(stub.vanilliRequestBody.criteria.headers['My-Header2']).to.equal(headerValue2);
         });
 
         it("assigns the query params to the stub criteria", function () {
@@ -119,15 +119,15 @@ describe("milli", function () {
                     .param('param2', param2)
                     .respondWith(dummyStatus);
 
-            expect(stub._addStubRequestBody.criteria.query.param1).to.equal(param1);
-            expect(stub._addStubRequestBody.criteria.query.param2).to.equal(param2);
+            expect(stub.vanilliRequestBody.criteria.query.param1).to.equal(param1);
+            expect(stub.vanilliRequestBody.criteria.query.param2).to.equal(param2);
         });
 
         it("assigns the correct number of times that the stub can respond", function () {
             var times = 3,
                 stub = onGetTo(dummyUrl).respondWith(dummyStatus).times(times);
 
-            expect(stub._addStubRequestBody.times).to.equal(times);
+            expect(stub.vanilliRequestBody.times).to.equal(times);
         });
     });
 
@@ -153,7 +153,7 @@ describe("milli", function () {
             server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
 
             milli.expect(request).run(function () {
-                expect(request._addStubRequestBody.times).to.equal(1);
+                expect(request.vanilliRequestBody.times).to.equal(1);
                 done();
             });
 
@@ -193,7 +193,8 @@ describe("milli", function () {
             server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 400, {}, "" ]);
 
             expect(function () {
-                milli.stub(onGetTo().respondWith(200)).run(function () {});
+                milli.stub(onGetTo().respondWith(200)).run(function () {
+                });
                 done();
             }).to.throw(/invalid/i);
 
