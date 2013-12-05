@@ -1,10 +1,11 @@
 /* jshint expr:true */
 describe("milli", function () {
     var request = superagent,
-        vanilliPort = 14000;
+        vanilliPort = 14000,
+        milli;
 
     before(function (done) {
-        milli.configure({ port: vanilliPort });
+        milli = new Milli({ port: vanilliPort });
         done();
     });
 

@@ -76,19 +76,6 @@
         };
     }
 
-    function substituteTemplatePlaceholders(uriTemplate, substitutionData) {
-        return uriTemplate.replace(/:[a-zA-Z][0-9a-zA-Z]+/g, function (placeholder) {
-            var paramName = placeholder.substr(1),
-                paramValue = substitutionData[paramName];
-
-            if (paramValue === undefined) {
-                throw new Error("Could not find substitution for placeholder '" + placeholder + "'.");
-            }
-
-            return paramValue;
-        });
-    }
-
     function sendStubs(stub, done) {
         xhr.open("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", true);
 
@@ -145,61 +132,76 @@
         xhr.send();
     }
 
-    context.milli = {
-        configure: function (config) {
-            if (!config) {
-                throw new Error("Config must be specified.");
-            }
+    context.Milli = function (config) {
 
-            if (!config.port) {
-                throw new Error("config.port must be specified.");
-            }
-
-            vanilliPort = config.port;
-            xhr = new XMLHttpRequest();
-        },
-        stub: function (stub) {
-            if (!stub) {
-                throw new Error("Stub content must be specified.");
-            }
-
-            if (!stub.vanilliRequestBody.times && (stub.vanilliRequestBody.times !== 0)) {
-                stub.vanilliRequestBody.times = 1;
-            }
-
-            stubs.push(stub);
-
-            return this;
-        },
-        expect: function (stub) {
-            stub.vanilliRequestBody.expect = true;
-            return this.stub(stub);
-        },
-        clearStubs: function (done) {
-            clearStubs(done);
-        },
-        verifyExpectations: function (done) {
-            verify(done);
-        },
-        run: function (next) {
-            sendStubs(stubs.map(function (stub) {
-                return stub.vanilliRequestBody;
-
-            }), function (err) {
-                stubs.length = 0;
-
-                if (err instanceof Error) {
-                    throw err;
-                } else if (err) {
-                    throw new Error(err);
-                } else {
-                    next(err);
-                }
-            });
+        if (!config) {
+            throw new Error("Config must be specified.");
         }
+
+        if (!config.port) {
+            throw new Error("config.port must be specified.");
+        }
+
+        vanilliPort = config.port;
+        xhr = new XMLHttpRequest();
+
+        return {
+            stub: function (stub) {
+                if (!stub) {
+                    throw new Error("Stub content must be specified.");
+                }
+
+                if (!stub.vanilliRequestBody.times && (stub.vanilliRequestBody.times !== 0)) {
+                    stub.vanilliRequestBody.times = 1;
+                }
+
+                stubs.push(stub);
+
+                return this;
+            },
+            expect: function (stub) {
+                stub.vanilliRequestBody.expect = true;
+                return this.stub(stub);
+            },
+            clearStubs: function (done) {
+                clearStubs(done);
+            },
+            verifyExpectations: function (done) {
+                verify(done);
+            },
+            run: function (next) {
+                sendStubs(stubs.map(function (stub) {
+                    return stub.vanilliRequestBody;
+
+                }), function (err) {
+                    stubs.length = 0;
+
+                    if (err instanceof Error) {
+                        throw err;
+                    } else if (err) {
+                        throw new Error(err);
+                    } else {
+                        next(err);
+                    }
+                });
+            }
+        };
     };
 
     context.onRequestTo = function (method, url, substitutionData) {
+        function substituteTemplatePlaceholders(uriTemplate, substitutionData) {
+            return uriTemplate.replace(/:[a-zA-Z][0-9a-zA-Z]+/g, function (placeholder) {
+                var paramName = placeholder.substr(1),
+                    paramValue = substitutionData[paramName];
+
+                if (paramValue === undefined) {
+                    throw new Error("Could not find substitution for placeholder '" + placeholder + "'.");
+                }
+
+                return paramValue;
+            });
+        }
+
         if (!url) {
             throw new Error("The stub url must be specified.");
         }
