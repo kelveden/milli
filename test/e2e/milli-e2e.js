@@ -150,14 +150,12 @@ describe("milli", function () {
                             .end(function (err) {
                                 if (err) return done(err);
 
-                                request.get("http://localhost:" + vanilliPort + "/_vanilli/captures/" + captureId)
-                                    .end(function (err, res) {
-                                        expect(res.status).to.equal(234);
-                                        expect(res.body).to.deep.equal(expectedResponseBody);
-                                        expect(res.header['content-type']).to.equal("application/json");
+                                var capture = milli.getCapture(captureId, function () {
+                                    expect(capture.body).to.deep.equal(expectedResponseBody);
+                                    expect(capture.header['content-type']).to.equal("application/json");
 
-                                        done();
-                                    });
+                                    done();
+                                });
                             });
                     });
 

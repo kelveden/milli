@@ -152,6 +152,22 @@
         xhr.send();
     }
 
+    function getCapture(captureId, done) {
+        xhr.open("GET", "http://localhost:" + vanilliPort + "/_vanilli/captures" + captureId, true);
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    done(JSON.parse(xhr.responseText));
+                } else {
+                    done(new Error("Capture could not be found. " + xhr.responseText));
+                }
+            }
+        };
+
+        xhr.send();
+    }
+
     context.milli = {
         configure: function (config) {
             if (!config) {
@@ -216,7 +232,8 @@
                     context[resourceName] = resource;
                 }
             }
-        }
+        },
+        getCapture: getCapture
     };
 
     context.onRequest = function (method, urlOrResource, substitutionData) {
