@@ -163,6 +163,12 @@ describe("milli", function () {
                 onGet("my/url/with/:myparam", { MYPARAM: "myvalue" });
             }).to.throw(/myparam/);
         });
+
+        it("adds in the capture id to the stub request body", function () {
+            var stub = onGet(dummyUrl).capture("mycapture").respondWith(dummyStatus);
+
+            expect(stub.vanilliRequestBody.capture).to.equal("mycapture");
+        });
     });
 
     describe("stub adder", function () {

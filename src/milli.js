@@ -73,6 +73,11 @@
             return new RespondWith(status);
         };
 
+        this.capture = function (captureId) {
+            stub.capture = captureId;
+            return this;
+        };
+
         var stub = {
                 criteria: {
                     method: method

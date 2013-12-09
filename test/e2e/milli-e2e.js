@@ -131,4 +131,37 @@ describe("milli", function () {
                 });
         });
     });
+
+    describe("captures", function () {
+        beforeEach(function (done) {
+            milli.clearStubs(function (err) {
+                done(err);
+            });
+
+            it("can be served", function () {
+                var expectedResponseBody = { myfield: "myvalue" },
+                    captureId = "mycapture";
+
+                milli.stub(onGet('/my/url').capture(captureId)
+                        .respondWith(234).entity(expectedResponseBody, "application/json"))
+
+                    .run(function () {
+                        request.get("http://localhost:" + vanilliPort + "/my/url")
+                            .end(function (err) {
+                                if (err) return done(err);
+
+                                request.get("http://localhost:" + vanilliPort + "/_vanilli/captures/" + captureId)
+                                    .end(function (err, res) {
+                                        expect(res.status).to.equal(234);
+                                        expect(res.body).to.deep.equal(expectedResponseBody);
+                                        expect(res.header['content-type']).to.equal("application/json");
+
+                                        done();
+                                    });
+                            });
+                    });
+
+            });
+        });
+    });
 });
