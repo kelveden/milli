@@ -200,9 +200,14 @@
 
             return this;
         },
-        expect: function (stub) {
-            stub.vanilliRequestBody.expect = true;
-            return this.stub(stub);
+        expect: function () {
+            this.stub.apply(this, arguments);
+
+            for (var i = 0; i < arguments.length; i++) {
+                arguments[i].vanilliRequestBody.expect = true;
+            }
+
+            return this;
         },
         clearStubs: function (done) {
             clearStubs(done);

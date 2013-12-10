@@ -274,6 +274,32 @@ describe("milli", function () {
 
             server.respond();
         });
+
+        it("can accept multiple expectations in one call", function (done) {
+            var vanilliSpy = sinon.spy(server, "handleRequest");
+            server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
+
+            milli
+                .expect(
+                    onGet('/some/url').respondWith(200),
+                    onGet('/another/url').respondWith(200),
+                    onGet('/yet/another/url').respondWith(200)
+                )
+                .run(function () {
+                    expect(vanilliSpy.calledOnce).to.be.truthy;
+
+                    var call = vanilliSpy.getCall(0),
+                        requestBody = JSON.parse(call.args[0].requestBody);
+
+                    expect(requestBody[0].criteria.url).to.equal('/some/url');
+                    expect(requestBody[1].criteria.url).to.equal('/another/url');
+                    expect(requestBody[2].criteria.url).to.equal('/yet/another/url');
+
+                    done();
+                });
+
+            server.respond();
+        });
     });
 
     describe('stub clearance', function () {
