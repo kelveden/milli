@@ -300,6 +300,26 @@ describe("milli", function () {
 
             server.respond();
         });
+
+        it("will reject an incomplete stub", function () {
+            expect(function () {
+                milli.stub(
+                    onGet('/some/url').respondWith(200),
+                    onGet('/some/other/url'),
+                    onGet('/yet/another/url').respondWith(200)
+                );
+            }).to.throw(/is incomplete/);
+        });
+
+        it("will reject a non-stub", function () {
+            expect(function () {
+                milli.stub(
+                    onGet('/some/url').respondWith(200),
+                    { thisThing: "is not a stub" },
+                    onGet('/yet/another/url').respondWith(200)
+                );
+            }).to.throw(/not a stub/);
+        });
     });
 
     describe('stub clearance', function () {

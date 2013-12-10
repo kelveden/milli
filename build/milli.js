@@ -1,42 +1,43 @@
 (function (context) {
     var vanilliPort, xhr, stubs = [];
 
+    function StubRespondWith(stub, status, defaultContentType) {
+        stub.respondWith.status = status;
+
+        this.entity = function (body, contentType) {
+            stub.respondWith.body = body;
+            stub.respondWith.contentType = contentType;
+            return this;
+        };
+
+        this.body = function (body) {
+            stub.respondWith.body = body;
+            if (!stub.respondWith.contentType && defaultContentType) {
+                stub.respondWith.contentType = defaultContentType;
+            }
+            return this;
+        };
+
+        this.contentType = function (contentType) {
+            stub.respondWith.contentType = contentType;
+            return this;
+        };
+
+        this.header = function (name, value) {
+            stub.respondWith.headers = stub.respondWith.headers || {};
+            stub.respondWith.headers[name] = value;
+            return this;
+        };
+
+        this.times = function (times) {
+            stub.times = times;
+            return this;
+        };
+
+        this.vanilliRequestBody = stub;
+    }
+
     function Stub(method, urlOrResource) {
-        function RespondWith(status) {
-            stub.respondWith.status = status;
-
-            this.entity = function (body, contentType) {
-                stub.respondWith.body = body;
-                stub.respondWith.contentType = contentType;
-                return this;
-            };
-
-            this.body = function (body) {
-                stub.respondWith.body = body;
-                if (!stub.respondWith.contentType && defaultResponseContentType) {
-                    stub.respondWith.contentType = defaultResponseContentType;
-                }
-                return this;
-            };
-
-            this.contentType = function (contentType) {
-                stub.respondWith.contentType = contentType;
-                return this;
-            };
-
-            this.header = function (name, value) {
-                stub.respondWith.headers = stub.respondWith.headers || {};
-                stub.respondWith.headers[name] = value;
-                return this;
-            };
-
-            this.times = function (times) {
-                stub.times = times;
-                return this;
-            };
-
-            this.vanilliRequestBody = stub;
-        }
 
         this.entity = function (body, contentType) {
             stub.criteria.body = body;
@@ -70,7 +71,7 @@
         };
 
         this.respondWith = function (status) {
-            return new RespondWith(status);
+            return new StubRespondWith(stub, status, defaultResponseContentType);
         };
 
         this.capture = function (captureId) {
@@ -183,6 +184,14 @@
         },
         stub: function () {
             function addStub(stub) {
+                if (stub instanceof Stub) {
+                    throw new Error("Stub " + JSON.stringify(stub) + " is incomplete - make sure you use a call to 'respondWith' to complete the stub.");
+                }
+
+                if (!(stub instanceof StubRespondWith)) {
+                    throw new Error("Argument " + JSON.stringify(stub) + " is not a stub - it is a " + typeof stub + ".");
+                }
+
                 if (!stub.vanilliRequestBody.times && (stub.vanilliRequestBody.times !== 0)) {
                     stub.vanilliRequestBody.times = 1;
                 }
@@ -200,9 +209,14 @@
 
             return this;
         },
-        expect: function (stub) {
-            stub.vanilliRequestBody.expect = true;
-            return this.stub(stub);
+        expect: function () {
+            this.stub.apply(this, arguments);
+
+            for (var i = 0; i < arguments.length; i++) {
+                arguments[i].vanilliRequestBody.expect = true;
+            }
+
+            return this;
         },
         clearStubs: function (done) {
             clearStubs(done);
