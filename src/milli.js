@@ -181,16 +181,22 @@
             vanilliPort = config.port;
             xhr = new XMLHttpRequest();
         },
-        stub: function (stub) {
-            if (!stub) {
+        stub: function () {
+            function addStub(stub) {
+                if (!stub.vanilliRequestBody.times && (stub.vanilliRequestBody.times !== 0)) {
+                    stub.vanilliRequestBody.times = 1;
+                }
+
+                stubs.push(stub);
+            }
+
+            if (arguments.length === 0) {
                 throw new Error("Stub content must be specified.");
             }
 
-            if (!stub.vanilliRequestBody.times && (stub.vanilliRequestBody.times !== 0)) {
-                stub.vanilliRequestBody.times = 1;
+            for (var i = 0; i < arguments.length; i++) {
+                addStub(arguments[i]);
             }
-
-            stubs.push(stub);
 
             return this;
         },

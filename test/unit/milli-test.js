@@ -208,6 +208,13 @@ describe("milli", function () {
                 .stub(onGet('/some/url').respondWith(200))
                 .stub(onGet('/some/other/url').respondWith(200)).run(function () {
                     expect(vanilliSpy.calledOnce).to.be.truthy;
+
+                    var call = vanilliSpy.getCall(0),
+                        requestBody = JSON.parse(call.args[0].requestBody);
+
+                    expect(requestBody[0].criteria.url).to.equal('/some/url');
+                    expect(requestBody[1].criteria.url).to.equal('/some/other/url');
+
                     done();
                 });
 
@@ -223,6 +230,7 @@ describe("milli", function () {
                 .expect(onGet('/some/other/url').respondWith(200).times(2))
                 .stub(onGet('/yet/another/url').respondWith(200)).run(function () {
                     expect(vanilliSpy.calledOnce).to.be.truthy;
+
                     done();
                 });
 
@@ -237,8 +245,34 @@ describe("milli", function () {
 
         it("throws an error if the stub content is missing", function () {
             expect(function () {
-                milli.stub(null);
+                milli.stub();
             }).to.throw(/stub content/i);
+        });
+
+        it("can accept multiple stubs in one call", function (done) {
+            var vanilliSpy = sinon.spy(server, "handleRequest");
+            server.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
+
+            milli
+                .stub(
+                    onGet('/some/url').respondWith(200),
+                    onGet('/another/url').respondWith(200),
+                    onGet('/yet/another/url').respondWith(200)
+                )
+                .run(function () {
+                    expect(vanilliSpy.calledOnce).to.be.truthy;
+
+                    var call = vanilliSpy.getCall(0),
+                        requestBody = JSON.parse(call.args[0].requestBody);
+
+                    expect(requestBody[0].criteria.url).to.equal('/some/url');
+                    expect(requestBody[1].criteria.url).to.equal('/another/url');
+                    expect(requestBody[2].criteria.url).to.equal('/yet/another/url');
+
+                    done();
+                });
+
+            server.respond();
         });
     });
 
