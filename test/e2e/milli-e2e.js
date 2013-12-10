@@ -137,29 +137,32 @@ describe("milli", function () {
             milli.clearStubs(function (err) {
                 done(err);
             });
+        });
 
-            it("can be served", function () {
-                var expectedResponseBody = { myfield: "myvalue" },
-                    captureId = "mycapture";
+        it("can be served", function (done) {
+            var expectedResponseBody = { myfield: "myvalue" },
+                captureId = "mycapture";
 
-                milli.stub(onGet('/my/url').capture(captureId)
-                        .respondWith(234).entity(expectedResponseBody, "application/json"))
+            milli.stub(onPost('/my/url').capture(captureId).respondWith(234))
+                .run(function () {
+                    request.post("http://localhost:" + vanilliPort + "/my/url")
+                        .send(expectedResponseBody)
+                        .end(function (err) {
+                            if (err instanceof Error) return done(err);
 
-                    .run(function () {
-                        request.get("http://localhost:" + vanilliPort + "/my/url")
-                            .end(function (err) {
-                                if (err) return done(err);
+                            milli.getCapture(captureId, function (capture) {
+                                if (capture instanceof Error) {
+                                    done(capture);
+                                }
 
-                                var capture = milli.getCapture(captureId, function () {
-                                    expect(capture.body).to.deep.equal(expectedResponseBody);
-                                    expect(capture.header['content-type']).to.equal("application/json");
+                                expect(capture.body).to.deep.equal(expectedResponseBody);
+                                expect(capture.headers['content-type']).to.equal("application/json");
 
-                                    done();
-                                });
+                                done();
                             });
-                    });
+                        });
+                });
 
-            });
         });
     });
 });

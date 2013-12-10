@@ -154,7 +154,7 @@
     }
 
     function getCapture(captureId, done) {
-        xhr.open("GET", "http://localhost:" + vanilliPort + "/_vanilli/captures" + captureId, true);
+        xhr.open("GET", "http://localhost:" + vanilliPort + "/_vanilli/captures/" + captureId, true);
 
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
