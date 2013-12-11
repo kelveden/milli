@@ -322,11 +322,11 @@ describe("milli", function () {
         });
     });
 
-    describe('stub clearance', function () {
+    describe('resetting', function () {
         it("does not result in an error response if successful", function (done) {
             server.respondWith("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
 
-            milli.clearStubs(function (err) {
+            milli.reset(function (err) {
                 expect(err).to.not.exist;
                 done();
             });
@@ -337,13 +337,28 @@ describe("milli", function () {
         it("does result in an error response if unsuccessful", function (done) {
             server.respondWith("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 500, {}, "Error!" ]);
 
-            milli.clearStubs(function (err) {
+            milli.reset(function (err) {
                 expect(err).to.exist;
                 expect(err).to.match(/Error!/);
                 done();
             });
 
             server.respond();
+        });
+
+        it("clears down the REST API registry", function () {
+            milli.registerApi({
+                myResource: {
+                    url: "/my/url"
+                }
+            });
+
+            expect(milli.api.myResource).to.exist;
+
+            milli.reset(function () {
+                expect(milli.api.myResource).to.not.exist;
+                done();
+            });
         });
     });
 
@@ -391,8 +406,8 @@ describe("milli", function () {
 
             milli.registerApi(resource);
 
-            expect(myResource).to.exist;
-            expect(myResource).is.equal(resource.myResource);
+            expect(milli.api.myResource).to.exist;
+            expect(milli.api.myResource).is.equal(resource.myResource);
         });
 
         it("will accept a REST resource expressed simply as a URL", function () {
@@ -400,7 +415,7 @@ describe("milli", function () {
                 myResource: "/my/url"
             });
 
-            expect(myResource).to.exist;
+            expect(milli.api.myResource).to.exist;
         });
 
         it("will not accept a REST resource without a uri template", function () {
@@ -423,8 +438,8 @@ describe("milli", function () {
                 }
             });
 
-            expect(myResource1).to.exist;
-            expect(myResource2).to.exist;
+            expect(milli.api.myResource1).to.exist;
+            expect(milli.api.myResource2).to.exist;
         });
 
         it("can be used to default a response content type for a stub", function () {
@@ -435,7 +450,7 @@ describe("milli", function () {
                 }
             });
 
-            var stub = onGet(myResource1).respondWith(dummyStatus).body("somebody");
+            var stub = onGet(milli.api.myResource1).respondWith(dummyStatus).body("somebody");
 
             expect(stub.vanilliRequestBody.respondWith.contentType).to.equal("my/contenttype");
         });
@@ -448,7 +463,7 @@ describe("milli", function () {
                 }
             });
 
-            var stub = onPut(myResource1).body("somebody").respondWith(dummyStatus);
+            var stub = onPut(milli.api.myResource1).body("somebody").respondWith(dummyStatus);
 
             expect(stub.vanilliRequestBody.criteria.contentType).to.equal("my/contenttype");
         });
@@ -460,11 +475,15 @@ describe("milli", function () {
                 }
             });
 
-            var stub = onGet(myResource1, {
+            var stub = onGet(milli.api.myResource1, {
                 param1: "value1", param2: "value2"
             }).respondWith(dummyStatus).body("somebody");
 
             expect(stub.vanilliRequestBody.criteria.url).to.equal("/my/url/value1/value2");
+        });
+
+        it("uses the parameters not matched against uri template placeholders as querystring param expectations", function () {
+
         });
     });
 });

@@ -1,6 +1,4 @@
 (function (context) {
-    var vanilliPort, xhr, stubs = [];
-
     function StubRespondWith(stub, status, defaultContentType) {
         stub.respondWith.status = status;
 
@@ -97,80 +95,86 @@
         }
     }
 
-    function sendStubs(stub, done) {
-        xhr.open("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", true);
+    function Milli() {
+        var vanilliPort, xhr,
+            stubs = [],
+            self = this;
 
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4) {
-                if (xhr.status === 200) {
-                    done();
-                } else if (xhr.status === 400) {
-                    done(new Error("One or more stubs were invalid. " + xhr.responseText));
-                } else {
-                    done(new Error("Could not add stubs. " + xhr.responseText));
-                }
-            }
-        };
+        self.api = {};
 
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.send(JSON.stringify(stub));
-    }
+        function sendStubs(stub, done) {
+            xhr.open("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", true);
 
-    function clearStubs(done) {
-        xhr.open("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/stubs", true);
-
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4) {
-                if (xhr.status === 200) {
-                    done();
-                } else {
-                    done(new Error("Could not clear stubs. " + xhr.responseText));
-                }
-            }
-        };
-
-        xhr.send();
-    }
-
-    function verify(done) {
-        xhr.open("GET", "http://localhost:" + vanilliPort + "/_vanilli/stubs/verification", true);
-
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4) {
-                if (xhr.status === 200) {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.errors.length > 0) {
-                        done(new Error("Vanilli expectations were not met:\n\n" + response.errors.join("\n")));
-                    } else {
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
                         done();
+                    } else if (xhr.status === 400) {
+                        done(new Error("One or more stubs were invalid. " + xhr.responseText));
+                    } else {
+                        done(new Error("Could not add stubs. " + xhr.responseText));
                     }
-                } else {
-                    done(new Error("Could not verify expectations. " + xhr.responseText));
                 }
-            }
-        };
+            };
 
-        xhr.send();
-    }
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify(stub));
+        }
 
-    function getCapture(captureId, done) {
-        xhr.open("GET", "http://localhost:" + vanilliPort + "/_vanilli/captures/" + captureId, true);
+        function clearStubs(done) {
+            xhr.open("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/stubs", true);
 
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4) {
-                if (xhr.status === 200) {
-                    done(JSON.parse(xhr.responseText));
-                } else {
-                    done(new Error("Capture could not be found. " + xhr.responseText));
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        done();
+                    } else {
+                        done(new Error("Could not clear stubs. " + xhr.responseText));
+                    }
                 }
-            }
-        };
+            };
 
-        xhr.send();
-    }
+            xhr.send();
+        }
 
-    context.milli = {
-        configure: function (config) {
+        function verify(done) {
+            xhr.open("GET", "http://localhost:" + vanilliPort + "/_vanilli/stubs/verification", true);
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        var response = JSON.parse(xhr.responseText);
+                        if (response.errors.length > 0) {
+                            done(new Error("Vanilli expectations were not met:\n\n" + response.errors.join("\n")));
+                        } else {
+                            done();
+                        }
+                    } else {
+                        done(new Error("Could not verify expectations. " + xhr.responseText));
+                    }
+                }
+            };
+
+            xhr.send();
+        }
+
+        function getCapture(captureId, done) {
+            xhr.open("GET", "http://localhost:" + vanilliPort + "/_vanilli/captures/" + captureId, true);
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        done(JSON.parse(xhr.responseText));
+                    } else {
+                        done(new Error("Capture could not be found. " + xhr.responseText));
+                    }
+                }
+            };
+
+            xhr.send();
+        }
+
+        self.configure = function (config) {
             if (!config) {
                 throw new Error("Config must be specified.");
             }
@@ -181,8 +185,9 @@
 
             vanilliPort = config.port;
             xhr = new XMLHttpRequest();
-        },
-        stub: function () {
+        };
+
+        self.stub = function () {
             function addStub(stub) {
                 if (stub instanceof Stub) {
                     throw new Error("Stub " + JSON.stringify(stub) + " is incomplete - make sure you use a call to 'respondWith' to complete the stub.");
@@ -207,24 +212,29 @@
                 addStub(arguments[i]);
             }
 
-            return this;
-        },
-        expect: function () {
-            this.stub.apply(this, arguments);
+            return self;
+        };
+
+        self.expect = function () {
+            self.stub.apply(self, arguments);
 
             for (var i = 0; i < arguments.length; i++) {
                 arguments[i].vanilliRequestBody.expect = true;
             }
 
-            return this;
-        },
-        clearStubs: function (done) {
+            return self;
+        };
+
+        self.reset = function (done) {
+            self.api = {};
             clearStubs(done);
-        },
-        verifyExpectations: function (done) {
+        };
+
+        self.verifyExpectations = function (done) {
             verify(done);
-        },
-        run: function (next) {
+        };
+
+        self.run = function (next) {
             sendStubs(stubs.map(function (stub) {
                 return stub.vanilliRequestBody;
 
@@ -239,8 +249,9 @@
                     next(err);
                 }
             });
-        },
-        registerApi: function (resources) {
+        };
+
+        self.registerApi = function (resources) {
             for (var resourceName in resources) {
                 if (resources.hasOwnProperty(resourceName)) {
                     var resource = resources[resourceName];
@@ -249,12 +260,13 @@
                         throw new Error("A uri template must be specified for the resource.");
                     }
 
-                    context[resourceName] = resource;
+                    self.api[resourceName] = resource;
                 }
             }
-        },
-        getCapture: getCapture
-    };
+        };
+
+        self.getCapture = getCapture;
+    }
 
     context.onRequest = function (method, urlOrResource, substitutionData) {
         function substituteTemplatePlaceholders(uriTemplate, substitutionData) {
@@ -298,5 +310,7 @@
     context.onPost = function (urlOrResource, substitutionData) {
         return context.onRequest('POST', urlOrResource, substitutionData);
     };
+
+    context.milli = new Milli();
 
 })(window.exports ? window.exports : window);
