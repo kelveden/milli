@@ -483,7 +483,18 @@ describe("milli", function () {
         });
 
         it("uses the parameters not matched against uri template placeholders as querystring param expectations", function () {
+            milli.registerApi({
+                myResource: {
+                    url: "/my/url/:param1"
+                }
+            });
 
+            var stub = onGet(milli.api.myResource, {
+                param1: "value1", param2: "value2"
+            }).respondWith(dummyStatus).body("somebody");
+
+            expect(stub.vanilliRequestBody.criteria.url).to.equal("/my/url/value1");
+            expect(stub.vanilliRequestBody.criteria.query.param2).to.equal("value2");
         });
     });
 });

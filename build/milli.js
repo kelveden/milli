@@ -274,12 +274,20 @@
                 var paramName = placeholder.substr(1),
                     paramValue = substitutionData[paramName];
 
+                delete substitutionData[paramName];
+
                 if (paramValue === undefined) {
                     throw new Error("Could not find substitution for placeholder '" + placeholder + "'.");
                 }
 
                 return paramValue;
             });
+        }
+
+        function addLeftoverSubstitutionsAsQueryParameters (stub, substitutionData) {
+            for (var paramName in substitutionData) {
+                stub.param(paramName, substitutionData[paramName]);
+            }
         }
 
         if (!urlOrResource) {
@@ -292,7 +300,10 @@
             urlOrResource = substituteTemplatePlaceholders(urlOrResource, substitutionData || {});
         }
 
-        return new Stub(method, urlOrResource);
+        var stub = new Stub(method, urlOrResource);
+        addLeftoverSubstitutionsAsQueryParameters(stub, substitutionData);
+
+        return stub;
     };
 
     context.onGet = function (urlOrResource, substitutionData) {
