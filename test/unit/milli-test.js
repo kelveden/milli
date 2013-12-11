@@ -480,6 +480,7 @@ describe("milli", function () {
 
             expect(stub.vanilliRequestBody.criteria.url).to.equal("/my/url/value1");
             expect(stub.vanilliRequestBody.criteria.query.param2).to.equal("value2");
+            expect(stub.vanilliRequestBody.criteria.query.param1).to.not.exist;
         });
     });
 });

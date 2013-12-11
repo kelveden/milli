@@ -35,7 +35,7 @@
         this.vanilliRequestBody = stub;
     }
 
-    function Stub(method, urlOrResource) {
+    function Stub(method, url, defaultRequestContentType, defaultResponseContentType) {
 
         this.entity = function (body, contentType) {
             stub.criteria.body = body;
@@ -78,21 +78,13 @@
         };
 
         var stub = {
-                criteria: {
-                    method: method
-                },
-                respondWith: {}
+            criteria: {
+                method: method
             },
-            defaultRequestContentType,
-            defaultResponseContentType;
+            respondWith: {}
+        };
 
-        if (typeof urlOrResource === 'string') {
-            stub.criteria.url = urlOrResource;
-        } else {
-            stub.criteria.url = urlOrResource.url;
-            defaultRequestContentType = urlOrResource.consumes;
-            defaultResponseContentType = urlOrResource.produces;
-        }
+        stub.criteria.url = url;
     }
 
     function Milli() {
@@ -262,24 +254,30 @@
     }
 
     context.onRequest = function (method, urlOrResource, substitutionData) {
+        var substitutedPlaceholders = {};
+
         function substituteTemplatePlaceholders(uriTemplate, substitutionData) {
             return uriTemplate.replace(/:[a-zA-Z][0-9a-zA-Z]+/g, function (placeholder) {
                 var paramName = placeholder.substr(1),
                     paramValue = substitutionData[paramName];
 
-                delete substitutionData[paramName];
-
                 if (paramValue === undefined) {
                     throw new Error("Could not find substitution for placeholder '" + placeholder + "'.");
                 }
+
+                substitutedPlaceholders[paramName] = paramValue;
 
                 return paramValue;
             });
         }
 
-        function addLeftoverSubstitutionsAsQueryParameters (stub, substitutionData) {
-            for (var paramName in substitutionData) {
-                stub.param(paramName, substitutionData[paramName]);
+        function addLeftoverSubstitutionsAsQueryParameters(stub, substitutionData) {
+            if (substitutionData) {
+                for (var paramName in substitutionData) {
+                    if (!substitutedPlaceholders[paramName]) {
+                        stub.param(paramName, substitutionData[paramName]);
+                    }
+                }
             }
         }
 
@@ -287,13 +285,16 @@
             throw new Error("The stub url must be specified.");
         }
 
+        var stub, url;
+
         if (typeof urlOrResource !== 'string') {
-            urlOrResource.url = substituteTemplatePlaceholders(urlOrResource.url, substitutionData || {});
+            url = substituteTemplatePlaceholders(urlOrResource.url, substitutionData || {});
+            stub = new Stub(method, url, urlOrResource.consumes, urlOrResource.produces);
         } else {
-            urlOrResource = substituteTemplatePlaceholders(urlOrResource, substitutionData || {});
+            url = substituteTemplatePlaceholders(urlOrResource, substitutionData || {});
+            stub = new Stub(method, url);
         }
 
-        var stub = new Stub(method, urlOrResource);
         addLeftoverSubstitutionsAsQueryParameters(stub, substitutionData);
 
         return stub;
