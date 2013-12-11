@@ -10,13 +10,13 @@ describe("milli", function () {
 
     describe("stubs", function () {
         beforeEach(function (done) {
-            milli.reset(function (err) {
+            milli.clearStubs(function (err) {
                 done(err);
             });
         });
 
         it("can be cleared down", function (done) {
-            milli.reset(function (err) {
+            milli.clearStubs(function (err) {
                 expect(err).to.not.exist;
                 done();
             });
@@ -134,7 +134,7 @@ describe("milli", function () {
 
     describe("captures", function () {
         beforeEach(function (done) {
-            milli.reset(function (err) {
+            milli.clearStubs(function (err) {
                 done(err);
             });
         });

@@ -322,11 +322,11 @@ describe("milli", function () {
         });
     });
 
-    describe('resetting', function () {
+    describe('clearing stubs', function () {
         it("does not result in an error response if successful", function (done) {
             server.respondWith("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
 
-            milli.reset(function (err) {
+            milli.clearStubs(function (err) {
                 expect(err).to.not.exist;
                 done();
             });
@@ -337,28 +337,13 @@ describe("milli", function () {
         it("does result in an error response if unsuccessful", function (done) {
             server.respondWith("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 500, {}, "Error!" ]);
 
-            milli.reset(function (err) {
+            milli.clearStubs(function (err) {
                 expect(err).to.exist;
                 expect(err).to.match(/Error!/);
                 done();
             });
 
             server.respond();
-        });
-
-        it("clears down the REST API registry", function () {
-            milli.registerApi({
-                myResource: {
-                    url: "/my/url"
-                }
-            });
-
-            expect(milli.api.myResource).to.exist;
-
-            milli.reset(function () {
-                expect(milli.api.myResource).to.not.exist;
-                done();
-            });
         });
     });
 

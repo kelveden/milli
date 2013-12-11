@@ -225,15 +225,6 @@
             return self;
         };
 
-        self.reset = function (done) {
-            self.api = {};
-            clearStubs(done);
-        };
-
-        self.verifyExpectations = function (done) {
-            verify(done);
-        };
-
         self.run = function (next) {
             sendStubs(stubs.map(function (stub) {
                 return stub.vanilliRequestBody;
@@ -265,7 +256,9 @@
             }
         };
 
+        self.clearStubs = clearStubs;
         self.getCapture = getCapture;
+        self.verifyExpectations = verify;
     }
 
     context.onRequest = function (method, urlOrResource, substitutionData) {
