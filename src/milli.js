@@ -110,6 +110,8 @@
                 done(result);
             } else if (promiser) {
                 deferred.resolve(result);
+            } else {
+                throw new Error("No 'done' callback was specified nor a promiser in the configuration.");
             }
         }
 
@@ -118,6 +120,8 @@
                 done(err);
             } else if (promiser) {
                 deferred.reject(err);
+            } else {
+                throw new Error("No 'done' callback was specified nor a promiser in the configuration.");
             }
         }
 
