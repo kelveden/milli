@@ -24,6 +24,10 @@ module.exports = function(config) {
                 pattern: 'bower_components/superagent/superagent.js',
                 watch: false
             },
+            {
+                pattern: 'bower_components/q/q.js',
+                watch: false
+            },
             'src/**/*.js',
             'test/**/*.js',
         ]

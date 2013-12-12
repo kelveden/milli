@@ -16,7 +16,8 @@
   ],
   "devDependencies": {
     "superagent": "~0.15.7",
-    "sinon": "~1.7.3"
+    "sinon": "~1.7.3",
+    "q": "~0.9.7"
   },
   "homepage": "https://github.com/kelveden/milli",
   "authors": [

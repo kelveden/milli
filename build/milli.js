@@ -90,9 +90,36 @@
     function Milli() {
         var vanilliPort, xhr,
             stubs = [],
-            self = this;
+            self = this,
+            promiser;
 
         self.api = {};
+
+        function deferredPromise() {
+            if (promiser) {
+                return promiser.defer();
+            } else {
+                return {
+                    promise: null
+                };
+            }
+        }
+
+        function resolve(done, deferred, result) {
+            if (done) {
+                done(result);
+            } else if (promiser) {
+                deferred.resolve(result);
+            }
+        }
+
+        function reject(done, deferred, err) {
+            if (done) {
+                done(err);
+            } else if (promiser) {
+                deferred.reject(err);
+            }
+        }
 
         function sendStubs(stub, done) {
             xhr.open("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", true);
@@ -114,56 +141,68 @@
         }
 
         function clearStubs(done) {
+            var deferred = deferredPromise();
+
             xhr.open("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/stubs", true);
 
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
-                        done();
+                        resolve(done, deferred);
                     } else {
-                        done(new Error("Could not clear stubs. " + xhr.responseText));
+                        reject(done, deferred, new Error("Could not clear stubs. " + xhr.responseText));
                     }
                 }
             };
 
             xhr.send();
+
+            return deferred.promise;
         }
 
         function verify(done) {
+            var deferred = deferredPromise();
+
             xhr.open("GET", "http://localhost:" + vanilliPort + "/_vanilli/stubs/verification", true);
 
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
                         var response = JSON.parse(xhr.responseText);
-                        if (response.errors.length > 0) {
-                            done(new Error("Vanilli expectations were not met:\n\n" + response.errors.join("\n")));
+                        if (response.errors.length === 0) {
+                            resolve(done, deferred);
                         } else {
-                            done();
+                            reject(done, deferred, new Error("Vanilli expectations were not met:\n\n" + response.errors.join("\n")));
                         }
                     } else {
-                        done(new Error("Could not verify expectations. " + xhr.responseText));
+                        reject(done, deferred, new Error("Could not verify expectations. " + xhr.responseText));
                     }
                 }
             };
 
             xhr.send();
+
+            return deferred.promise;
         }
 
         function getCapture(captureId, done) {
+            var deferred = deferredPromise();
+
             xhr.open("GET", "http://localhost:" + vanilliPort + "/_vanilli/captures/" + captureId, true);
 
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
-                        done(JSON.parse(xhr.responseText));
+                        resolve(done, deferred, JSON.parse(xhr.responseText));
                     } else {
-                        done(new Error("Capture could not be found. " + xhr.responseText));
+                        reject(done, deferred, new Error("Capture could not be found. " + xhr.responseText));
                     }
                 }
             };
 
             xhr.send();
+
+            return deferred.promise;
         }
 
         self.configure = function (config) {
@@ -177,6 +216,7 @@
 
             vanilliPort = config.port;
             xhr = new XMLHttpRequest();
+            promiser = config.promiser;
         };
 
         self.stub = function () {
