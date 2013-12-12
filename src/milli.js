@@ -288,9 +288,31 @@
             }
         };
 
-        self.clearStubs = clearStubs;
-        self.getCapture = getCapture;
-        self.verifyExpectations = verify;
+        self.clearStubs = function (done) {
+            if (done) {
+                clearStubs(done);
+            } else {
+                return clearStubs;
+            }
+        };
+
+        self.getCapture = function (captureId, done) {
+            if (done) {
+                getCapture(captureId, done);
+            } else {
+                return function () {
+                    return getCapture(captureId);
+                };
+            }
+        };
+
+        self.verifyExpectations = function (done) {
+            if (done) {
+                verify(done);
+            } else {
+                return verify;
+            }
+        };
     }
 
     context.onRequest = function (method, urlOrResource, substitutionData) {
