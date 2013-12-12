@@ -1,6 +1,6 @@
 {
   "name": "milli",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "main": [
     "build/milli.js",
     "build/milli.min.js"
