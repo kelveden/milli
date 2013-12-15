@@ -93,7 +93,7 @@
             self = this,
             promiser;
 
-        self.api = {};
+        self.apis = {};
 
         function deferredPromise() {
             if (promiser) {
@@ -278,16 +278,25 @@
             });
         };
 
-        self.registerApi = function (resources) {
+        self.registerApi = function (apiName, resources) {
+            if (!apiName) {
+                throw new Error("An API name must be specified.");
+            }
+
             for (var resourceName in resources) {
                 if (resources.hasOwnProperty(resourceName)) {
-                    var resource = resources[resourceName];
+                    var resource = resources[resourceName],
+                        api = self.apis[apiName];
 
                     if ((typeof resource !== 'string') && (!resource.url)) {
                         throw new Error("A uri template must be specified for the resource.");
                     }
 
-                    self.api[resourceName] = resource;
+                    if (!api) {
+                        api = self.apis[apiName] = {};
+                    }
+
+                    api[resourceName] = resource;
                 }
             }
         };

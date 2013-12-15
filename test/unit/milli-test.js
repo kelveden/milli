@@ -382,6 +382,10 @@ describe("milli", function () {
     });
 
     describe('REST resource registry', function () {
+        beforeEach(function () {
+            milli.apis = {};
+        });
+
         it("adds a valid REST resource as a globally available stub builder", function () {
             var resource = {
                 myResource: {
@@ -389,78 +393,86 @@ describe("milli", function () {
                 }
             };
 
-            milli.registerApi(resource);
+            milli.registerApi("myapi", resource);
 
-            expect(milli.api.myResource).to.exist;
-            expect(milli.api.myResource).is.equal(resource.myResource);
+            expect(milli.apis.myapi.myResource).to.exist;
+            expect(milli.apis.myapi.myResource).is.equal(resource.myResource);
         });
 
         it("will accept a REST resource expressed simply as a URL", function () {
-            milli.registerApi({
+            milli.registerApi("myapi", {
                 myResource: "/my/url"
             });
 
-            expect(milli.api.myResource).to.exist;
+            expect(milli.apis.myapi.myResource).to.exist;
         });
 
         it("will not accept a REST resource without a uri template", function () {
             expect(function () {
-                milli.registerApi({
+                milli.registerApi("someapi", {
                     myResource: {}
                 });
             }).to.throw(/template/i);
         });
 
+        it("will not accept a REST resource without an API name", function () {
+            expect(function () {
+                milli.registerApi(null, {
+                    myResource: "/some/url"
+                });
+            }).to.throw(/API name/i);
+        });
+
         it("adds a valid REST resource to the existing resources", function () {
-            milli.registerApi({
+            milli.registerApi("myapi", {
                 myResource1: {
                     url: "/my/url"
                 }
             });
-            milli.registerApi({
+            milli.registerApi("myapi", {
                 myResource2: {
                     url: "/my/url"
                 }
             });
 
-            expect(milli.api.myResource1).to.exist;
-            expect(milli.api.myResource2).to.exist;
+            expect(milli.apis.myapi.myResource1).to.exist;
+            expect(milli.apis.myapi.myResource2).to.exist;
         });
 
         it("can be used to default a response content type for a stub", function () {
-            milli.registerApi({
+            milli.registerApi("someapi", {
                 myResource1: {
                     url: "/my/url",
                     produces: "my/contenttype"
                 }
             });
 
-            var stub = onGet(milli.api.myResource1).respondWith(dummyStatus).body("somebody");
+            var stub = onGet(milli.apis.someapi.myResource1).respondWith(dummyStatus).body("somebody");
 
             expect(stub.vanilliRequestBody.respondWith.contentType).to.equal("my/contenttype");
         });
 
         it("can be used to default a request content type for a stub", function () {
-            milli.registerApi({
+            milli.registerApi("someapi", {
                 myResource1: {
                     url: "/my/url",
                     consumes: "my/contenttype"
                 }
             });
 
-            var stub = onPut(milli.api.myResource1).body("somebody").respondWith(dummyStatus);
+            var stub = onPut(milli.apis.someapi.myResource1).body("somebody").respondWith(dummyStatus);
 
             expect(stub.vanilliRequestBody.criteria.contentType).to.equal("my/contenttype");
         });
 
         it("can be used to substitute a uri template with its placeholders", function () {
-            milli.registerApi({
+            milli.registerApi("someapi", {
                 myResource1: {
                     url: "/my/url/:param1/:param2"
                 }
             });
 
-            var stub = onGet(milli.api.myResource1, {
+            var stub = onGet(milli.apis.someapi.myResource1, {
                 param1: "value1", param2: "value2"
             }).respondWith(dummyStatus).body("somebody");
 
@@ -468,13 +480,13 @@ describe("milli", function () {
         });
 
         it("uses the parameters not matched against uri template placeholders as querystring param expectations", function () {
-            milli.registerApi({
+            milli.registerApi("someapi", {
                 myResource: {
                     url: "/my/url/:param1"
                 }
             });
 
-            var stub = onGet(milli.api.myResource, {
+            var stub = onGet(milli.apis.someapi.myResource, {
                 param1: "value1", param2: "value2"
             }).respondWith(dummyStatus).body("somebody");
 
