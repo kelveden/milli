@@ -11,7 +11,7 @@ describe("milli promise api", function () {
         fakeVanilli.restore();
     });
 
-    it.only("can resolve a 'get a capture' promise", function (done) {
+    it("can resolve a 'get a capture' promise", function (done) {
         var captureId = "1234",
             captureBody = { some: "data" };
 
