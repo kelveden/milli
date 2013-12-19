@@ -4,7 +4,7 @@ describe("milli promise api", function () {
 
     beforeEach(function () {
         fakeVanilli = sinon.fakeServer.create();
-        milli.configure({ port: vanilliPort, promiser: Q });
+        milli.configure({ port: vanilliPort, deferrer: Q.defer });
     });
 
     afterEach(function () {

@@ -91,13 +91,13 @@
         var vanilliPort, xhr,
             stubs = [],
             self = this,
-            promiser;
+            deferrer;
 
         self.apis = {};
 
         function deferredPromise() {
-            if (promiser) {
-                return promiser.defer();
+            if (deferrer) {
+                return deferrer();
             } else {
                 return {
                     promise: null
@@ -108,20 +108,20 @@
         function resolve(done, deferred, result) {
             if (done) {
                 done(result);
-            } else if (promiser) {
+            } else if (deferrer) {
                 deferred.resolve(result);
             } else {
-                throw new Error("No 'done' callback was specified nor a promiser in the configuration.");
+                throw new Error("No 'done' callback was specified nor a deferrer in the configuration.");
             }
         }
 
         function reject(done, deferred, err) {
             if (done) {
                 done(err);
-            } else if (promiser) {
+            } else if (deferrer) {
                 deferred.reject(err);
             } else {
-                throw new Error("No 'done' callback was specified nor a promiser in the configuration.");
+                throw new Error("No 'done' callback was specified nor a deferrer in the configuration.");
             }
         }
 
@@ -220,7 +220,7 @@
 
             vanilliPort = config.port;
             xhr = new XMLHttpRequest();
-            promiser = config.promiser;
+            deferrer = config.deferrer;
         };
 
         self.stub = function () {
