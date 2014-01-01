@@ -43,16 +43,21 @@ So, what's going on here? You can probably spot that there are 4 distinct steps:
 1. Setup zero or more stubs
 2. Setup zero or more expectations
 3. Run test code
-4. Verify that milli expectations have been met
+4. Verify that any expectations specified have been met
 
 API
 ---
 ### milli.stub(s1, s2, ..., sX)
 Tells milli about one or more stubs. A simple stub might look like:
 
-    milli.stub(onGet("my/url").respondWith(200));
+    milli.stub(
+        onGet("my/url")
+            .param("queryparam1", "matchthisvalue")
+            .respondWith(200)
+            .entity("some content", "text/plain");
 
-For more information see the section on "Stubs and Expectations" below.
+This stub would only be matched against a GET request to "/my/url" that included the query parameter `queryparam1=matchthisvalue`. For more information see the section on
+"Stubs and Expectations" below.
 
 ### milli.expect(e1, e2, ..., eX)
 Tells milli about one or more expectations. Setting up an expectation looks exactly the same as setting up a stub except that there is the extra option of
@@ -93,6 +98,10 @@ Stubs
 -----
 A stub contains all the information that vanilli needs to match against an incoming HTTP request. If vanilli matches an
 incoming HTTP request against a stub it will respond with the response specified against that stub.
+
+The matching algorithm is lazy in the sense that whilst ALL criteria specifed in the stub MUST be matched against a request, beyond that
+it is irrelevant what other data is in the request. E.g. if there are querystring parameters in the request that are not
+explicitly mentioned in the stub, the stub will still match.
 
 A new stub is created via one of the `onXXX` functions exposed globally by milli - where 'XXX' is
 an HTTP method (e.g. `onGet`). Each one of these functions returns a new stub builder that exposes a fluent API for crafting HTTP request
