@@ -153,6 +153,35 @@ Add the specified header to the response.
 #### StubRespondWith.times(numberOfTimes)
 Instructs vanilli to only match against this stub the specified number of times.
 
+### Example
+Here is an example of a more complex stub that makes use of the entire Stub API:
+
+    milli.stub(
+        onPost("/my/url")
+            .entity("some submitted content", "text/plain")
+            .param("queryparam1", "value1")
+            .header("myheader", "myheadervalue")
+            .capture("mycapture")
+            .respondWith(200)
+                .entity("my response", "text/plain")
+                .header("myresponseheader", "some value")
+                .times(2));
+
+This will match against any request that:
+
+* Has the URL "/my/url" AND
+* Has an entity body of "some submitted content" AND a Content-Type header "text/plain" AND
+* Includes the querystring parameter "queryparam1" with value "value1"
+
+NOTE: It will ONLY match 2 times at most.
+NOTE: The last request matching the stub will be stored under the id "mycapture" for future reference with `milli.getCapture`.
+
+When the stub is matched, vanilli will respond with:
+
+* Status 200 AND
+* A body "my response" AND Content-Type header "text/plain" AND
+* A header "myresponseheader" with the value "some value".
+
 Expectations
 ------------
 By default, milli stubs are simply that - stubs. If one wants to actually assert that a specified stub is called a specific number of times then an expectation can be used instead.
