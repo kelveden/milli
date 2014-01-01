@@ -328,7 +328,7 @@
         };
     }
 
-    context.onRequest = function (method, urlOrResource, substitutionData) {
+    function onRequest(method, urlOrResource, substitutionData) {
         var substitutedPlaceholders = {};
 
         function substituteTemplatePlaceholders(uriTemplate, substitutionData) {
@@ -373,22 +373,22 @@
         addLeftoverSubstitutionsAsQueryParameters(stub, substitutionData);
 
         return stub;
-    };
+    }
 
     context.onGet = function (urlOrResource, substitutionData) {
-        return context.onRequest('GET', urlOrResource, substitutionData);
+        return onRequest('GET', urlOrResource, substitutionData);
     };
 
     context.onDelete = function (urlOrResource, substitutionData) {
-        return context.onRequest('DELETE', urlOrResource, substitutionData);
+        return onRequest('DELETE', urlOrResource, substitutionData);
     };
 
     context.onPut = function (urlOrResource, substitutionData) {
-        return context.onRequest('PUT', urlOrResource, substitutionData);
+        return onRequest('PUT', urlOrResource, substitutionData);
     };
 
     context.onPost = function (urlOrResource, substitutionData) {
-        return context.onRequest('POST', urlOrResource, substitutionData);
+        return onRequest('POST', urlOrResource, substitutionData);
     };
 
     context.milli = new Milli();

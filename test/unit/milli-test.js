@@ -83,13 +83,6 @@ describe("milli", function () {
             expect(stub.vanilliRequestBody.criteria.url).to.equal(url);
         });
 
-        it("assigns the correct HTTP method to the stub criteria", function () {
-            var method = "MYMETHOD",
-                stub = onRequest('MYMETHOD', dummyUrl).respondWith(dummyStatus);
-
-            expect(stub.vanilliRequestBody.criteria.method).to.equal(method);
-        });
-
         it("assigns the entity to the stub criteria", function () {
             var contentType = "my/contenttype",
                 body = { myfield: "myvalue" },
