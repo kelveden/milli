@@ -40,17 +40,23 @@ As milli talks to vanilli via the latter's REST API, milli is used in an asynchr
 
 So, what's going on here? You can probably spot that there are 4 distinct steps:
 
-1) Setup zero or more stubs
-2) Setup zero or more expectations
-3) Run test code
-4) Verify that milli expectations have been met
+1. Setup zero or more stubs
+2. Setup zero or more expectations
+3. Run test code
+4. Verify that milli expectations have been met
 
 API
 ---
 ### milli.stub(s1, s2, ..., sX)
-TODO
+Tells milli about one or more stubs. A simple stub might look like:
+
+    milli.stub(onGet("my/url").respondWith(200));
+
+For more information see the section on "Stubs and Expectations" below.
+
 ### milli.expect(e1, e2, ..., eX)
-TODO
+Tells milli about one or more expectations. Setting up an expectation looks exactly the same as setting up a stub except that there is the extra option of
+specifying the number of times that the stub is expected to be invoked.
 
 ### milli.run(callback)
 Causes milli to submit all stubs and expectations setup via `stub` and `expect` to vanilli. The specified callback is then executed.
@@ -58,21 +64,8 @@ Causes milli to submit all stubs and expectations setup via `stub` and `expect` 
 ### milli.verifyExpectations([doneCallback])
 Verifies that all expectations setup via `expect` have been met. If expectations have not been met, the doneCallback argument is called passing in a new Error object to it as the first argument; otherwise the doneCallback is called with no arguments.
 
-#### Promise mode
-In promise mode milli will not expect a `doneCallback` argument and will instead propagates the result via a promise `resolve` or `reject` as appropriate. E.g.
-
-	milli.verifyExpectations()
-		.then(function () {
-			// Everything is OK
-		}, function (err) {
-			throw err;
-		});
-
 ### milli.configure(config)
-Allows the configuration of milli. The `config` parameter is an object with the following available fields:
-
-* `port` (mandatory): The port on which Vanilli is running.
-* `deferrer` (optional): An object implementing the "defer" API described in the Promises/B specification. E.g. `Q`. If specified it changes the behaviour of milli to provide promise-based responses.
+Allows the configuration of milli. See the 'Configuration' section below for more information.
 
 ### milli.registerApi(restServiceName, restServiceApi)
 Provides a convenience mechanism for sharing RESTful service URLs across tests. Simply tell milli about the API of the REST service that you will be stubbing out and then milli will expose the URLs for that API for specifying in calls to `milli.stub` and `milli.expect`. E.g.
@@ -93,8 +86,90 @@ Provides a convenience mechanism for sharing RESTful service URLs across tests. 
 ### milli.clearStubs(doneCallback)
 Tells vanilli to clear down all stubs and expectations. After this is done, the specified `doneCallback` is executed.
 
-#### Promise mode
-In promise mode milli will not expect a `doneCallback` argument and will instead propagates the result via a promise `resolve` or `reject` as appropriate. E.g.
+### milli.getCapture(captureId, doneCallback)
+Retrieves the details of the specified capture. The result is passed to the specified `doneCallback`.
+
+Stubs
+-----
+A stub contains all the information that vanilli needs to match against an incoming HTTP request. If vanilli matches an
+incoming HTTP request against a stub it will respond with the response specified against that stub.
+
+A new stub is created via one of the `onXXX` functions exposed globally by milli - where 'XXX' is
+an HTTP method (e.g. `onGet`). Each one of these functions returns a new stub builder that exposes a fluent API for crafting HTTP request
+criteria to match the stub against.
+
+The minimum that milli/vanilli need to know is the URL to match against and what status code to respond with; e.g.:
+
+    milli.stub(onGet("my/url")).respondWith(200));
+
+However, there are plenty of other criteria to match against on the stub builder API:
+
+### Stub Builder API
+#### Stub.body(body)
+Match against a specific request body regex.
+
+#### Stub.contentType(contentType)
+Match against a specific Content-Type header; equivalent to `Stub.header("Content-Type", value)`;
+
+#### Stub.entity(body, contentType)
+Convenience function equivalent to `Stub.body(body).contentType(contentType)`;
+
+#### Stub.header(name, value)
+Match against a specific header with value regex.
+
+#### Stub.param(name, value)
+Match against a specific querystring parameter with value regex.
+
+#### Stub.capture(captureId)
+Instructs milli to capture the content of the request matched against the stub by logging it with the specified `captureId`. This id can
+then be used with `milli.getCapture(captureId)` to retrieve the captured details.
+
+#### Stub.respondWith(status)
+Instructs milli to respond with the specified status when an incoming request matched against the stub. Returns a builder that
+can be used to flesh out the stub response further:
+
+### Stub Response Builder API
+#### StubRespondWith.body(body)
+The entity body to respond with.
+
+#### StubRespondWith.contentType(contentType)
+The entity content type; equivalent to `StubRespondWith.header("Content-Type", value)`.
+
+#### StubRespondWith.entity(body, contentType)
+Convenience function equivalent to `StubRespondWith.body(body).contentType(contentType)`;
+
+#### StubRespondWith.header(name, value)
+Add the specified header to the response.
+
+#### StubRespondWith.times(numberOfTimes)
+Instructs vanilli to only match against this stub the specified number of times.
+
+Expectations
+------------
+By default, milli stubs are simply that - stubs. If one wants to actually assert that a specified stub is called a specific number of times then an expectation can be used instead.
+They are simply stubs with the one subtle difference:
+
+* The `StubRespondWith.times` function has a different effect - 1) the stub will match ANY number of times, regardless of the number specified; 2) BUT `milli.verifyExpectations` will
+fail if the number of times the stub was called differs the number of times specified against the stub.
+
+Captures
+--------
+For more sophisticated matching of a stub against a request it might be necessary to let the stub match "loosely", capture the details of the actual request that matches against it
+and then assert against that captured request. One does by telling milli to capture the request matched against a stub with `Stub.capture`
+and then retrieving the captured request with `milli.getCapture`. E.g.:
+
+      milli.stub(onGet("/my/url").capture("mycaptureid").respondWith(200))
+      ...
+      milli.getCapture("mycaptureid", function(capturedEntity) {
+        // Assert against the captured request.
+      });
+
+NOTE: If the stub is matched multiple times then the capture will be of the LAST match.
+
+Callback Mode vs Promise Mode
+-----------------------------
+All the async milli functions act in "callback mode" by default - that is, they take a `doneCallback` argument. However, they can also act in "promise mode" instead. In promise mode
+milli will instead propagate the result of the async function via a promise `resolve` or `reject` as appropriate. E.g.
 
 	milli.clearStubs()
 		.then(function () {
@@ -103,9 +178,15 @@ In promise mode milli will not expect a `doneCallback` argument and will instead
 			throw err;
 		});
 
-### milli.getCapture(captureId, doneCallback)
-TODO
+To be able to use "promise mode" you will need to do 2 things:
+
+* Specify a `deferrer` in the Milli configuration (see documentation on `milli.configure` above).
+* Do NOT pass a `doneCallback` into the function - if one is passed in then "callback mode" will be assumed.
 
 Configuration
 -------------
-See the `configure` function described in the API above.
+Configuration is specified via `milli.configure(config)`. The `config` parameter is an object with the following available fields:
+
+* `port` (mandatory): The port on which Vanilli is running.
+* `deferrer` (optional): An object implementing the `defer` API as described in the Promises/B specification. E.g. `Q`. If specified
+it allows milli to operate in "promise mode". (See "Callback Mode vs Promise Mode" above.)
