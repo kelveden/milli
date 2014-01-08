@@ -233,10 +233,6 @@
                     throw new Error("Argument " + JSON.stringify(stub) + " is not a stub - it is a " + typeof stub + ".");
                 }
 
-                if (!stub.vanilliRequestBody.times && (stub.vanilliRequestBody.times !== 0)) {
-                    stub.vanilliRequestBody.times = 1;
-                }
-
                 stubs.push(stub);
             }
 
@@ -255,7 +251,13 @@
             self.stub.apply(self, arguments);
 
             for (var i = 0; i < arguments.length; i++) {
-                arguments[i].vanilliRequestBody.expect = true;
+                var stub = arguments[i];
+
+                if (!stub.vanilliRequestBody.times && (stub.vanilliRequestBody.times !== 0)) {
+                    stub.vanilliRequestBody.times = 1;
+                }
+
+                stub.vanilliRequestBody.expect = true;
             }
 
             return self;

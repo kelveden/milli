@@ -193,6 +193,18 @@ describe("milli", function () {
             fakeVanilli.respond();
         });
 
+        it("does not set the 'times' of a stub if not explicitly specified", function (done) {
+            var request = onGet('/some/url').respondWith(200);
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
+
+            milli.stub(request).run(function () {
+                expect(request.vanilliRequestBody.times).to.be.undefined;
+                done();
+            });
+
+            fakeVanilli.respond();
+        });
+
         it("can be used to chain multiple stubs together so that only one call is made to Vanilli", function (done) {
             var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
