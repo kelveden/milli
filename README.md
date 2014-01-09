@@ -228,3 +228,7 @@ Configuration is specified via `milli.configure(config)`. The `config` parameter
 * `port` (mandatory): The port on which Vanilli is running.
 * `deferrer` (optional): An object implementing the `defer` API as described in the Promises/B specification. E.g. `Q`. If specified
 it allows milli to operate in "promise mode". (See "Callback Mode vs Promise Mode" above.)
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/kelveden/milli/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
