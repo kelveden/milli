@@ -226,7 +226,7 @@ Configuration
 Configuration is specified via `milli.configure(config)`. The `config` parameter is an object with the following available fields:
 
 * `port` (mandatory): The port on which Vanilli is running.
-* `deferrer` (optional): An object implementing the `defer` API as described in the Promises/B specification. E.g. `Q`. If specified
+* `deferrer` (optional): A reference to a `defer` function as described in the Promises/B specification. E.g. `Q.defer`. If specified
 it allows milli to operate in "promise mode". (See "Callback Mode vs Promise Mode" above.)
 
 
