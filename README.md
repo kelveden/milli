@@ -38,12 +38,13 @@ As milli talks to vanilli via the latter's REST API, milli is used in an asynchr
 
 	...
 
-So, what's going on here? You can probably spot that there are 4 distinct steps:
+So, what's going on here? You can probably spot that there are several distinct steps:
 
-1. Setup zero or more stubs
-2. Setup zero or more expectations
-3. Run test code
-4. Verify that any expectations specified have been met
+1. Clear down any stubs from previous tests
+2. Setup zero or more stubs
+3. Setup zero or more expectations
+4. Run test code
+5. Verify that any expectations specified have been met
 
 API
 ---
