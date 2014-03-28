@@ -4,6 +4,16 @@ module.exports = function (grunt) {
 
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
+        complexity: {
+            generic: {
+                src: ['src/**/*.js'],
+                options: {
+                    cyclometric: 5,
+                    halstead: 16,
+                    maintainability: 100
+                }
+            }
+        },
         copy: {
             main: {
                 files: [
@@ -93,6 +103,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-bump');
     grunt.loadNpmTasks('grunt-bunyan');
+    grunt.loadNpmTasks('grunt-complexity');
 
     grunt.registerTask('tdd', [ 'jshint', 'vanilli:start', 'karma:tdd:start', 'watch' ]);
     grunt.registerTask('tdd_rerun', [ 'jshint', 'karma:tdd:run' ]);
