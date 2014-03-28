@@ -38,12 +38,13 @@ As milli talks to vanilli via the latter's REST API, milli is used in an asynchr
 
 	...
 
-So, what's going on here? You can probably spot that there are 4 distinct steps:
+So, what's going on here? You can probably spot that there are several distinct steps:
 
-1. Setup zero or more stubs
-2. Setup zero or more expectations
-3. Run test code
-4. Verify that any expectations specified have been met
+1. Clear down any stubs from previous tests
+2. Setup zero or more stubs
+3. Setup zero or more expectations
+4. Run test code
+5. Verify that any expectations specified have been met
 
 API
 ---
@@ -226,7 +227,7 @@ Configuration
 Configuration is specified via `milli.configure(config)`. The `config` parameter is an object with the following available fields:
 
 * `port` (mandatory): The port on which Vanilli is running.
-* `deferrer` (optional): An object implementing the `defer` API as described in the Promises/B specification. E.g. `Q`. If specified
+* `deferrer` (optional): A reference to a `defer` function as described in the Promises/B specification. E.g. `Q.defer`. If specified
 it allows milli to operate in "promise mode". (See "Callback Mode vs Promise Mode" above.)
 
 
