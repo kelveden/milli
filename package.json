@@ -31,7 +31,8 @@
     "grunt-bunyan": "0.x",
     "grunt-vanilli": "0.x",
     "bower": "1.x",
-    "grunt-complexity": "0.x"
+    "grunt-complexity": "0.x",
+    "karma-phantomjs-launcher": "0.x"
   },
   "engines": {
     "node": ">=0.10.0"
