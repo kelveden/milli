@@ -29,7 +29,8 @@ module.exports = function(config) {
                 watch: false
             },
             'src/**/*.js',
-            'test/**/*.js',
+            'test/unit/*.js',
+            'test/e2e/*.js',
         ]
     });
 };
