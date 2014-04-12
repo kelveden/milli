@@ -33,6 +33,11 @@
                 return this;
             };
 
+            this.afterWaiting = function (afterWaitingMilliseconds) {
+                stub.respondWith.wait = afterWaitingMilliseconds;
+                return this;
+            };
+
             this.vanilliRequestBody = stub;
         }
 

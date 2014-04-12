@@ -162,6 +162,12 @@ describe("milli", function () {
 
             expect(stub.vanilliRequestBody.capture).to.equal("mycapture");
         });
+
+        it("sets the response wait interval for the stub response based on respondWith.afterWaiting", function () {
+            var stub = onGet(dummyUrl).capture("mycapture").respondWith(dummyStatus).afterWaiting(2000);
+
+            expect(stub.vanilliRequestBody.respondWith.wait).to.equal(2000);
+        });
     });
 
     describe("stub adder", function () {
