@@ -154,6 +154,9 @@ Add the specified header to the response.
 #### StubRespondWith.times(numberOfTimes)
 Instructs vanilli to only match against this stub the specified number of times.
 
+#### StubRespondWith.afterWaiting(numberOfMilliseconds)
+Instructs vanilli to only respond with the stub after waiting the specified number of milliseconds. Useful for simulating potential race conditions or latency issues.
+
 ### Example
 Here is an example of a more complex stub that makes use of the entire Stub API:
 
@@ -166,6 +169,7 @@ Here is an example of a more complex stub that makes use of the entire Stub API:
             .respondWith(200)
                 .entity("my response", "text/plain")
                 .header("myresponseheader", "some value")
+                .afterWaiting(2000)
                 .times(2));
 
 This will match against any request that:
@@ -176,6 +180,7 @@ This will match against any request that:
 
 NOTE: It will ONLY match 2 times at most.
 NOTE: The last request matching the stub will be stored under the id "mycapture" for future reference with `milli.getCapture`.
+NOTE: The response will only be completed after waiting 2000 milliseconds.
 
 When the stub is matched, vanilli will respond with:
 
