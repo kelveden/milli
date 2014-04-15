@@ -91,14 +91,6 @@ module.exports = function (grunt) {
             },
             start: {},
             stop: {}
-        },
-        mochaTest: {
-            nodetest: {
-                src: [ 'test/node/**/*.js' ],
-                options: {
-                    reporter: 'spec'
-                }
-            }
         }
     });
 
@@ -112,12 +104,11 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-bump');
     grunt.loadNpmTasks('grunt-bunyan');
     grunt.loadNpmTasks('grunt-complexity');
-    grunt.loadNpmTasks('grunt-mocha-test');
 
     grunt.registerTask('tdd', [ 'jshint', 'vanilli:start', 'karma:tdd:start', 'watch' ]);
     grunt.registerTask('tdd_rerun', [ 'jshint', 'karma:tdd:run' ]);
 
-    grunt.registerTask('build', [ 'jshint', 'bunyan', 'vanilli:start', 'karma:ci', 'mochaTest', 'vanilli:stop', 'uglify', 'copy' ]);
+    grunt.registerTask('build', [ 'jshint', 'bunyan', 'vanilli:start', 'karma:ci', 'vanilli:stop', 'uglify', 'copy' ]);
     grunt.registerTask('ci', [ 'bower', 'build' ]);
     grunt.registerTask('publish', [ 'build', 'bump' ]);
 

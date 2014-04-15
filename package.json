@@ -1,7 +1,6 @@
 {
   "name": "milli",
   "version": "0.0.21",
-  "main": "build/milli.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/kelveden/milli.git"
@@ -39,8 +38,5 @@
   },
   "engines": {
     "node": ">=0.10.0"
-  },
-  "dependencies": {
-    "xhr2": "0.x"
   }
 }

@@ -402,12 +402,5 @@
         context.milli = new Milli();
     }
 
-    if (typeof exports === 'object') {
-        // Running in node
-        global.XMLHttpRequest = require('xhr2');
-        addMilliTo(global);
-    } else {
-        // Running in browser
-        addMilliTo(window);
-    }
+    addMilliTo(window);
 })();
