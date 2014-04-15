@@ -24,16 +24,6 @@ module.exports = function (grunt) {
                 ]
             }
         },
-        uglify: {
-            options: {
-                banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n',
-                preserveComments: 'some'
-            },
-            build: {
-                src: 'src/<%= pkg.name %>.js',
-                dest: 'build/<%= pkg.name %>.min.js'
-            }
-        },
         jshint: {
             all: [
                 'Gruntfile.js',
@@ -94,7 +84,6 @@ module.exports = function (grunt) {
         }
     });
 
-    grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
@@ -108,7 +97,7 @@ module.exports = function (grunt) {
     grunt.registerTask('tdd', [ 'jshint', 'vanilli:start', 'karma:tdd:start', 'watch' ]);
     grunt.registerTask('tdd_rerun', [ 'jshint', 'karma:tdd:run' ]);
 
-    grunt.registerTask('build', [ 'jshint', 'bunyan', 'vanilli:start', 'karma:ci', 'vanilli:stop', 'uglify', 'copy' ]);
+    grunt.registerTask('build', [ 'jshint', 'bunyan', 'vanilli:start', 'karma:ci', 'vanilli:stop', 'copy' ]);
     grunt.registerTask('ci', [ 'bower', 'build' ]);
     grunt.registerTask('publish', [ 'build', 'bump' ]);
 
