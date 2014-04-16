@@ -36,10 +36,8 @@ describe("milli", function () {
     });
 
     it("can verify expectations synchronously", function () {
-        milli
-            .expect(
-                onGet('/my/url')
-                    .respondWith(234));
+        milli.stub(
+            expectRequest(onGet('/my/url').respondWith(234)));
 
         milli.runSync();
 

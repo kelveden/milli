@@ -28,8 +28,11 @@ describe("milli", function () {
         });
 
         it("can be used to verify expectations", function (done) {
-            milli.expect(onGet('/my/url').respondWith(234).times(2)).run(
-                function () {
+            milli
+                .stub(
+                    expectRequest(onGet('/my/url').respondWith(234))
+                        .times(2))
+                .run(function () {
                     milli.verifyExpectations(function (err) {
                         expect(err).to.exist;
                         expect(err.message).to.match(/GET \/my\/url/);

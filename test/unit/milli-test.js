@@ -170,6 +170,17 @@ describe("milli", function () {
         });
     });
 
+    it("stub cloner can clone a stub", function () {
+        var stub = onGet('/some/url').respondWith(200),
+            clonedStub = stub.clone();
+
+        expect(JSON.stringify(stub)).to.equal(JSON.stringify(clonedStub));
+
+        clonedStub.times(3);
+
+        expect(JSON.stringify(stub)).to.not.equal(JSON.stringify(clonedStub));
+    });
+
     describe("stub adder", function () {
         var dummyVanilliResponse = JSON.stringify([ "someid" ]);
 
@@ -181,37 +192,59 @@ describe("milli", function () {
             fakeVanilli.respond();
         });
 
+
+
+
+
         it("can be used to add a single expectation", function (done) {
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
-            milli.expect(onGet('/some/url').respondWith(200)).run(done);
+            milli.stub(
+                expectRequest(onGet('/some/url').respondWith(200)).times(3)
+            ).run(done);
 
             fakeVanilli.respond();
+
+            var vanilliRequest = fakeVanilli.requests[0];
+
+            expect(vanilliRequest.vanilliRequestBody.times).to.equal(3);
+        });
+
+        it("will clone the stub used as an expectation", function (done) {
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
+
+            var stub = onGet('/some/url').respondWith(200);
+
+            milli.stub(
+                expectRequest(stub).times(3)
+            ).run(done);
+
+            fakeVanilli.respond();
+
+            var vanilliRequest = fakeVanilli.requests[0];
+
+            expect(stub.vanilliRequestBody.times).to.be.undefined;
+            expect(vanilliRequest.vanilliRequestBody.times).to.equal(3);
         });
 
         it("sets the 'times' of an expectation to 1 if not explicitly specified", function (done) {
-            var request = onGet('/some/url').respondWith(200);
+
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
-            milli.expect(request).run(function () {
-                expect(request.vanilliRequestBody.times).to.equal(1);
-                done();
-            });
+            milli.stub(
+                expectRequest(onGet('/some/url').respondWith(200))
+            ).run(done);
 
             fakeVanilli.respond();
+
+            var vanilliRequest = fakeVanilli.requests[0];
+
+            expect(vanilliRequest.vanilliRequestBody.times).to.equal(1);
         });
 
-        it("does not set the 'times' of a stub if not explicitly specified", function (done) {
-            var request = onGet('/some/url').respondWith(200);
-            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
-            milli.stub(request).run(function () {
-                expect(request.vanilliRequestBody.times).to.be.undefined;
-                done();
-            });
 
-            fakeVanilli.respond();
-        });
+
 
         it("can be used to chain multiple stubs together so that only one call is made to Vanilli", function (done) {
             var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
@@ -240,7 +273,7 @@ describe("milli", function () {
 
             milli
                 .stub(onGet('/some/url').respondWith(200))
-                .expect(onGet('/some/other/url').respondWith(200).times(2))
+                .stub(expectRequest(onGet('/some/other/url').respondWith(200)).times(2))
                 .stub(onGet('/yet/another/url').respondWith(200)).run(function () {
                     expect(vanilliSpy.calledOnce).to.be.truthy;
 
@@ -293,10 +326,10 @@ describe("milli", function () {
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             milli
-                .expect(
-                    onGet('/some/url').respondWith(200),
-                    onGet('/another/url').respondWith(200),
-                    onGet('/yet/another/url').respondWith(200)
+                .stub(
+                    expectRequest(onGet('/some/url').respondWith(200)),
+                    expectRequest(onGet('/another/url').respondWith(200)),
+                    expectRequest(onGet('/yet/another/url').respondWith(200))
                 )
                 .run(function () {
                     expect(vanilliSpy.calledOnce).to.be.truthy;

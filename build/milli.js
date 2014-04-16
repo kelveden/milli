@@ -41,11 +41,11 @@
         };
 
         var stub = {
-            criteria: {
-                method: method
-            },
-            respondWith: {}
-        };
+                criteria: {
+                    method: method
+                },
+                respondWith: {}
+            };
 
         stub.criteria.url = url;
     }
@@ -86,6 +86,10 @@
         this.afterWaiting = function (afterWaitingMilliseconds) {
             stub.respondWith.wait = afterWaitingMilliseconds;
             return this;
+        };
+
+        this.clone = function () {
+            return new StubRespondWith(JSON.parse(JSON.stringify(stub)), status, defaultContentType);
         };
 
         this.vanilliRequestBody = stub;
@@ -257,22 +261,6 @@
             return self;
         };
 
-        self.expect = function () {
-            self.stub.apply(self, arguments);
-
-            for (var i = 0; i < arguments.length; i++) {
-                var stub = arguments[i];
-
-                if (!stub.vanilliRequestBody.times && (stub.vanilliRequestBody.times !== 0)) {
-                    stub.vanilliRequestBody.times = 1;
-                }
-
-                stub.vanilliRequestBody.expect = true;
-            }
-
-            return self;
-        };
-
         self.run = function (next) {
             sendStubs(stubs.map(function (stub) {
                 return stub.vanilliRequestBody;
@@ -403,6 +391,17 @@
 
     context.onPost = function (urlOrResource, substitutionData) {
         return onRequest('POST', urlOrResource, substitutionData);
+    };
+
+    context.expectRequest = function (stub, times) {
+        function convertToExpectation(stub) {
+            stub.vanilliRequestBody.times = isNaN(times) ? 1 : times;
+            stub.vanilliRequestBody.expect = true;
+
+            return stub;
+        }
+
+        return convertToExpectation(stub.clone());
     };
 
     context.milli = new Milli();
