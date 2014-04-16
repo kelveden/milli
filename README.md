@@ -224,7 +224,7 @@ milli will instead propagate the result of the async function via a promise `res
 
 To be able to use "promise mode" you will need to do 2 things:
 
-* Specify a `deferrer` in the Milli configuration (see documentation on `milli.configure` above).
+* Specify a `promiser` in the Milli configuration (see documentation on `milli.configure` below).
 * Do NOT pass a `doneCallback` into the function - if one is passed in then "callback mode" will be assumed.
 
 Configuration
@@ -232,9 +232,10 @@ Configuration
 Configuration is specified via `milli.configure(config)`. The `config` parameter is an object with the following available fields:
 
 * `port` (mandatory): The port on which Vanilli is running.
-* `deferrer` (optional): A reference to a `defer` function as described in the Promises/B specification. E.g. `Q.defer`. If specified
-it allows milli to operate in "promise mode". (See "Callback Mode vs Promise Mode" above.)
+* `promiser` (optional): A reference to a promises library that MUST include `then` AND `defer` functions as described in the [Promises/B specification](http://wiki.commonjs.org/wiki/Promises/B).
+(E.g. `{ promiser: Q }` to use Kris Kowal's Q library.) If specified it allows milli to operate in "promise mode". (See "Callback Mode vs Promise Mode" above.)
 
+NOTE: milli just uses duck-typing on the promise library - so the library doesn't *have* to be Promises/B compatible: only to include the functions mentioned above.
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/kelveden/milli/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
