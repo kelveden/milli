@@ -171,8 +171,10 @@ describe("milli", function () {
     });
 
     describe("stub adder", function () {
+        var dummyVanilliResponse = JSON.stringify([ "someid" ]);
+
         it("can be used to add a single stub", function (done) {
-            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             milli.stub(onGet('/some/url').respondWith(200)).run(done);
 
@@ -180,7 +182,7 @@ describe("milli", function () {
         });
 
         it("can be used to add a single expectation", function (done) {
-            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             milli.expect(onGet('/some/url').respondWith(200)).run(done);
 
@@ -189,7 +191,7 @@ describe("milli", function () {
 
         it("sets the 'times' of an expectation to 1 if not explicitly specified", function (done) {
             var request = onGet('/some/url').respondWith(200);
-            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             milli.expect(request).run(function () {
                 expect(request.vanilliRequestBody.times).to.equal(1);
@@ -201,7 +203,7 @@ describe("milli", function () {
 
         it("does not set the 'times' of a stub if not explicitly specified", function (done) {
             var request = onGet('/some/url').respondWith(200);
-            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             milli.stub(request).run(function () {
                 expect(request.vanilliRequestBody.times).to.be.undefined;
@@ -213,7 +215,7 @@ describe("milli", function () {
 
         it("can be used to chain multiple stubs together so that only one call is made to Vanilli", function (done) {
             var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
-            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             milli
                 .stub(onGet('/some/url').respondWith(200))
@@ -234,7 +236,7 @@ describe("milli", function () {
 
         it("can be used to chain a combination of stubs AND expectations together so that only one call is made to Vanilli", function (done) {
             var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
-            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             milli
                 .stub(onGet('/some/url').respondWith(200))
@@ -262,7 +264,7 @@ describe("milli", function () {
 
         it("can accept multiple stubs in one call", function (done) {
             var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
-            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             milli
                 .stub(
@@ -288,7 +290,7 @@ describe("milli", function () {
 
         it("can accept multiple expectations in one call", function (done) {
             var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
-            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, "" ]);
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             milli
                 .expect(

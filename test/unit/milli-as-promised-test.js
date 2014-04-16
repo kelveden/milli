@@ -18,7 +18,7 @@ describe("milli promise api", function () {
         fakeVanilli.respondWith("GET", "http://localhost:" + vanilliPort + "/_vanilli/captures/" + captureId,
             [ 200, {}, JSON.stringify(captureBody) ]);
 
-        milli.getCapture(captureId)().then(function (capture) {
+        milli.getCapture(captureId).then(function (capture) {
             expect(capture).to.deep.equal(captureBody);
             done();
         });
@@ -32,7 +32,7 @@ describe("milli promise api", function () {
         fakeVanilli.respondWith("GET", "http://localhost:" + vanilliPort + "/_vanilli/captures/" + captureId,
             [ 500, {}, "" ]);
 
-        milli.getCapture(captureId)().catch(function (err) {
+        milli.getCapture(captureId).catch(function (err) {
             expect(err).to.be.instanceof(Error);
             done();
         });
@@ -44,7 +44,7 @@ describe("milli promise api", function () {
         fakeVanilli.respondWith("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/stubs",
             [ 200, {}, "" ]);
 
-        Q(milli.clearStubs()).then(function () {
+        milli.clearStubs().then(function () {
             done();
         });
 
@@ -55,7 +55,7 @@ describe("milli promise api", function () {
         fakeVanilli.respondWith("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/stubs",
             [ 500, {}, "" ]);
 
-        milli.clearStubs()().catch(function (err) {
+        milli.clearStubs().catch(function (err) {
             expect(err).to.be.instanceof(Error);
             done();
         });
@@ -69,7 +69,7 @@ describe("milli promise api", function () {
         fakeVanilli.respondWith("GET", "http://localhost:" + vanilliPort + "/_vanilli/stubs/verification",
             [ 200, {}, JSON.stringify(responseBody) ]);
 
-        milli.verifyExpectations()().then(function () {
+        milli.verifyExpectations().then(function () {
             done();
         });
 
@@ -80,7 +80,7 @@ describe("milli promise api", function () {
         fakeVanilli.respondWith("GET", "http://localhost:" + vanilliPort + "/_vanilli/stubs/verification",
             [ 500, {}, "" ]);
 
-        milli.verifyExpectations()().catch(function (err) {
+        milli.verifyExpectations().catch(function (err) {
             expect(err).to.be.instanceof(Error);
             done();
         });

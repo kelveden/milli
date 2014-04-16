@@ -93,125 +93,131 @@
 
     function Milli() {
 
-        var vanilliPort, xhr,
+        var vanilliPort,
             stubs = [],
             self = this,
             Promiser;
 
         self.apis = {};
 
-        function deferredPromise() {
-            if (Promiser) {
-                return Promiser.defer();
-            } else {
-                return {
-                    promise: null
-                };
-            }
-        }
+        function sendToVanilli(method, url, data, doneOrSync, successBuilder, errorBuilder) {
+            var xhr = new XMLHttpRequest(),
+                syncMode = ((typeof doneOrSync === 'boolean') && !doneOrSync),
+                callbackMode = (typeof doneOrSync === 'function'),
+                promiseMode = !callbackMode && !syncMode,
+                deferred = promiseMode ? Promiser.defer() : null;
 
-        function resolve(done, deferred, result) {
-            if (done) {
-                done(result);
-            } else if (Promiser) {
-                deferred.resolve(result);
-            } else {
-                throw new Error("No 'done' callback was specified nor a promiser in the configuration.");
-            }
-        }
-
-        function reject(done, deferred, err) {
-            if (done) {
-                done(err);
-            } else if (Promiser) {
-                deferred.reject(err);
-            } else {
-                throw new Error("No 'done' callback was specified nor a promiser in the configuration.");
-            }
-        }
-
-        function sendStubs(stub, done) {
-            xhr.open("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", true);
-
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        done();
-                    } else if (xhr.status === 400) {
-                        done(new Error("One or more stubs were invalid. " + xhr.responseText));
+            function reactToCompletedResponse () {
+                function success(result) {
+                    if (syncMode) {
+                        return result;
+                    } else if (promiseMode) {
+                        deferred.resolve(result);
                     } else {
-                        done(new Error("Could not add stubs. " + xhr.responseText));
+                        doneOrSync(result);
                     }
                 }
-            };
 
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.send(JSON.stringify(stub));
+                function failure(error) {
+                    if (syncMode) {
+                        throw error;
+                    } else if (promiseMode) {
+                        deferred.reject(error);
+                    } else {
+                        doneOrSync(error);
+                    }
+                }
+
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        var result = successBuilder(xhr);
+
+                        if (result instanceof Error) {
+                            failure(result);
+                        } else {
+                            return success(result);
+                        }
+                    } else {
+                        failure(errorBuilder(xhr));
+                    }
+                }
+            }
+
+            xhr.open(method, url, !syncMode);
+            if ((method === "POST") || (method === 'PUT')) {
+                xhr.setRequestHeader('Content-Type', 'application/json');
+            }
+
+            if (!syncMode) {
+                xhr.onreadystatechange = reactToCompletedResponse;
+            }
+
+            xhr.send(data);
+
+            if (syncMode) {
+                return reactToCompletedResponse();
+            } else {
+                if (promiseMode) {
+                    return deferred.promise;
+                }
+            }
+        }
+
+        function sendStubs(stubs, done) {
+            return sendToVanilli("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", JSON.stringify(stubs),
+                done,
+                function (xhr) {
+                    return JSON.parse(xhr.responseText);
+                },
+                function (xhr) {
+                    if (xhr.status === 400) {
+                        return new Error("One or more stubs were invalid. " + xhr.responseText);
+                    } else {
+                        return new Error("Could not add stubs. " + xhr.responseText);
+                    }
+                });
         }
 
         function clearStubs(done) {
-            var deferred = deferredPromise();
-
-            xhr.open("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/stubs", true);
-
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        resolve(done, deferred);
-                    } else {
-                        reject(done, deferred, new Error("Could not clear stubs. " + xhr.responseText));
-                    }
-                }
-            };
-
-            xhr.send();
-
-            return deferred.promise;
+            return sendToVanilli("DELETE", "http://localhost:" + vanilliPort + "/_vanilli/stubs", null,
+                done,
+                function () {
+                    return null;
+                },
+                function (xhr) {
+                    return new Error("Could not clear stubs. " + xhr.responseText);
+                });
         }
 
         function verify(done) {
-            var deferred = deferredPromise();
-
-            xhr.open("GET", "http://localhost:" + vanilliPort + "/_vanilli/stubs/verification", true);
-
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        var response = JSON.parse(xhr.responseText);
-                        if (response.errors.length === 0) {
-                            resolve(done, deferred);
-                        } else {
-                            reject(done, deferred, new Error("Vanilli expectations were not met:\n\n" + response.errors.join("\n")));
-                        }
+            return sendToVanilli("GET", "http://localhost:" + vanilliPort + "/_vanilli/stubs/verification", null,
+                done,
+                function (xhr) {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.errors.length === 0) {
+                        return null;
                     } else {
-                        reject(done, deferred, new Error("Could not verify expectations. " + xhr.responseText));
+                        return new Error("Vanilli expectations were not met:\n\n" + response.errors.join("\n"));
                     }
-                }
-            };
-
-            xhr.send();
-
-            return deferred.promise;
+                },
+                function (xhr) {
+                    return new Error("Could not verify expectations. " + xhr.responseText);
+                });
         }
 
         function getCapture(captureId, done) {
-            var deferred = deferredPromise();
-
-            xhr.open("GET", "http://localhost:" + vanilliPort + "/_vanilli/captures/" + captureId, true);
-
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        resolve(done, deferred, JSON.parse(xhr.responseText));
+            return sendToVanilli("GET", "http://localhost:" + vanilliPort + "/_vanilli/captures/" + captureId, null,
+                done,
+                function (xhr) {
+                    return JSON.parse(xhr.responseText);
+                },
+                function (xhr) {
+                    if (xhr.status === 404) {
+                        return new Error("Capture could not be found. " + xhr.responseText);
                     } else {
-                        reject(done, deferred, new Error("Capture could not be found. " + xhr.responseText));
+                        return new Error("Capture could not be retrieved. " + xhr.responseText);
                     }
-                }
-            };
-
-            xhr.send();
-
-            return deferred.promise;
+                });
         }
 
         self.configure = function (config) {
@@ -224,7 +230,6 @@
             }
 
             vanilliPort = config.port;
-            xhr = new XMLHttpRequest();
             Promiser = config.promiser;
         };
 
@@ -277,12 +282,16 @@
 
                 if (err instanceof Error) {
                     throw err;
-                } else if (err) {
-                    throw new Error(err);
                 } else {
-                    next(err);
+                    next();
                 }
             });
+        };
+
+        self.runSync = function () {
+            sendStubs(stubs.map(function (stub) {
+                return stub.vanilliRequestBody;
+            }), false);
         };
 
         self.registerApi = function (apiName, resources) {
@@ -309,29 +318,27 @@
         };
 
         self.clearStubs = function (done) {
-            if (done) {
-                clearStubs(done);
-            } else {
-                return clearStubs;
-            }
+            return clearStubs(done);
+        };
+
+        self.clearStubsSync = function () {
+            return clearStubs(false);
         };
 
         self.getCapture = function (captureId, done) {
-            if (done) {
-                getCapture(captureId, done);
-            } else {
-                return function () {
-                    return getCapture(captureId);
-                };
-            }
+            return getCapture(captureId, done);
+        };
+
+        self.getCaptureSync = function (captureId) {
+            return getCapture(captureId, false);
         };
 
         self.verifyExpectations = function (done) {
-            if (done) {
-                verify(done);
-            } else {
-                return verify;
-            }
+            return verify(done);
+        };
+
+        self.verifyExpectationsSync = function () {
+            return verify(false);
         };
     }
 
