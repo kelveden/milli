@@ -12,12 +12,8 @@ describe("milli", function () {
     });
 
     it("can clear down stubs synchronously", function (done) {
-        milli
-            .stub(
-                onGet('/my/url')
-                    .respondWith(234));
-
-        milli.runSync();
+        milli.storeStubs(
+            onGet('/my/url').respondWith(234));
 
         request.get("http://localhost:" + vanilliPort + "/my/url")
             .end(function (err, res) {
@@ -36,17 +32,16 @@ describe("milli", function () {
     });
 
     it("can verify expectations synchronously", function () {
-        milli.stub(
+        milli.storeStubs(
             expectRequest(onGet('/my/url').respondWith(234)));
-
-        milli.runSync();
 
         expect(milli.verifyExpectationsSync).to.throw(/Vanilli expectations were not met/);
     });
 
     it("can add stubs synchronously", function (done) {
-        milli.stub(onGet('/my/url').respondWith(234));
-        milli.runSync();
+        milli.storeStubs(
+            onGet('/my/url').respondWith(234),
+            onGet('/another/url').respondWith(222));
 
         request.get("http://localhost:" + vanilliPort + "/my/url")
             .end(function (err, res) {

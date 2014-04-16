@@ -227,6 +227,25 @@ To be able to use "promise mode" you will need to do 2 things:
 * Specify a `promiser` in the Milli configuration (see documentation on `milli.configure` below).
 * Do NOT pass a `doneCallback` into the function - if one is passed in then "callback mode" will be assumed.
 
+Synchronous mode
+----------------
+All async operations have a corresponding synchronous operation: `milli.clearStubsSync`, `milli.verifyExpectationsSync` and `milli.getCaptureSync`. Stubs themselves can also be stored synchronously by using
+the `milli.storeStubs` function instead of `milli.stub`. E.g.:
+
+    function myTest() {
+        milli.clearStubsSync();
+
+        milli.storeStubs(
+            onGet('/my/url').respondWith(234),
+            onGet('/another/url').respondWith(222));
+
+        ...Do somethng with the SUT...
+
+        milli.verifyExpectationsSync();
+    }
+
+For more examples see the milli-sync-e2e.js test file.
+
 Configuration
 -------------
 Configuration is specified via `milli.configure(config)`. The `config` parameter is an object with the following available fields:

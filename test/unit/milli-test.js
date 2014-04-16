@@ -192,10 +192,6 @@ describe("milli", function () {
             fakeVanilli.respond();
         });
 
-
-
-
-
         it("can be used to add a single expectation", function (done) {
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
@@ -242,10 +238,6 @@ describe("milli", function () {
             expect(vanilliRequest.vanilliRequestBody.times).to.equal(1);
         });
 
-
-
-
-
         it("can be used to chain multiple stubs together so that only one call is made to Vanilli", function (done) {
             var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
@@ -275,12 +267,24 @@ describe("milli", function () {
                 .stub(onGet('/some/url').respondWith(200))
                 .stub(expectRequest(onGet('/some/other/url').respondWith(200)).times(2))
                 .stub(onGet('/yet/another/url').respondWith(200)).run(function () {
-                    expect(vanilliSpy.calledOnce).to.be.truthy;
+                    expect(vanilliSpy.calledOnce).to.be.true;
 
                     done();
                 });
 
             fakeVanilli.respond();
+        });
+
+        it("can be used to chain a combination of stubs AND expectations together in one synchronous request to Vanilli", function () {
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
+
+            milli.storeStubs(
+                onGet('/some/url').respondWith(200),
+                expectRequest(onGet('/some/other/url').respondWith(200)).times(2),
+                onGet('/yet/another/url').respondWith(200));
+
+            expect(vanilliSpy.calledOnce).to.be.true;
         });
 
         it("throws an error for a missing url", function () {

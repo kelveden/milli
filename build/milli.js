@@ -41,11 +41,11 @@
         };
 
         var stub = {
-                criteria: {
-                    method: method
-                },
-                respondWith: {}
-            };
+            criteria: {
+                method: method
+            },
+            respondWith: {}
+        };
 
         stub.criteria.url = url;
     }
@@ -261,6 +261,18 @@
             return self;
         };
 
+        self.storeStubs = function () {
+            self.stub.apply(self, arguments);
+
+            var result = sendStubs(stubs.map(function (stub) {
+                return stub.vanilliRequestBody;
+            }), false);
+
+            stubs.length = 0;
+
+            return result;
+        };
+
         self.run = function (next) {
             sendStubs(stubs.map(function (stub) {
                 return stub.vanilliRequestBody;
@@ -274,12 +286,6 @@
                     next();
                 }
             });
-        };
-
-        self.runSync = function () {
-            sendStubs(stubs.map(function (stub) {
-                return stub.vanilliRequestBody;
-            }), false);
         };
 
         self.registerApi = function (apiName, resources) {
