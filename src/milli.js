@@ -111,7 +111,7 @@
                 promiseMode = !callbackMode && !syncMode,
                 deferred = promiseMode ? Promiser.defer() : null;
 
-            function reactToCompletedResponse () {
+            function reactToCompletedResponse() {
                 function success(result) {
                     if (syncMode) {
                         return result;
@@ -167,8 +167,15 @@
             }
         }
 
-        function sendStubs(stubs, done) {
-            return sendToVanilli("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", JSON.stringify(stubs),
+        function sendStubs(done) {
+            var body = JSON.stringify(
+                stubs.map(function (stub) {
+                    return stub.vanilliRequestBody;
+                }));
+
+            stubs.length = 0;
+
+            return sendToVanilli("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", body,
                 done,
                 function (xhr) {
                     return JSON.parse(xhr.responseText);
@@ -224,20 +231,7 @@
                 });
         }
 
-        self.configure = function (config) {
-            if (!config) {
-                throw new Error("Config must be specified.");
-            }
-
-            if (!config.port) {
-                throw new Error("config.port must be specified.");
-            }
-
-            vanilliPort = config.port;
-            Promiser = config.promiser;
-        };
-
-        self.stub = function () {
+        function addStubs(stubDefinitions) {
             function addStub(stub) {
                 if (stub instanceof Stub) {
                     throw new Error("Stub " + JSON.stringify(stub) + " is incomplete - make sure you use a call to 'respondWith' to complete the stub.");
@@ -250,34 +244,65 @@
                 stubs.push(stub);
             }
 
-            if (arguments.length === 0) {
+            if (stubDefinitions.length === 0) {
                 throw new Error("Stub content must be specified.");
             }
 
-            for (var i = 0; i < arguments.length; i++) {
-                addStub(arguments[i]);
+            stubDefinitions.forEach(function (stubDefinition) {
+                addStub(stubDefinition);
+            });
+
+            return stubs;
+        }
+
+        function argsToArray(args) {
+            return Array.prototype.slice.call(args, 0);
+        }
+
+        self.configure = function (config) {
+            if (!config) {
+                throw new Error("Config must be specified.");
             }
+
+            if (!config.port) {
+                throw new Error("config.port must be specified.");
+            }
+
+            vanilliPort = config.port;
+            Promiser = config.promiser;
+            stubs.length = 0;
+        };
+
+        self.stub = function () {
+            addStubs(argsToArray(arguments));
 
             return self;
         };
 
-        self.storeStubs = function () {
-            self.stub.apply(self, arguments);
+        self.allow = function () {
+            addStubs(argsToArray(arguments))
+                .forEach(function (stub) {
+                    if (!isNaN(stub.vanilliRequestBody.times)) {
+                        throw new Error("Stubs cannot be specified with 'times' - use an expectation instead.");
+                    }
+                });
 
-            var result = sendStubs(stubs.map(function (stub) {
-                return stub.vanilliRequestBody;
-            }), false);
+            return sendStubs(false);
+        };
 
-            stubs.length = 0;
+        self.expect = function () {
+            var expectations = argsToArray(arguments).map(
+                function (stub) {
+                    return expectRequest(stub);
+                });
 
-            return result;
+            addStubs(expectations);
+
+            return sendStubs(false);
         };
 
         self.run = function (next) {
-            sendStubs(stubs.map(function (stub) {
-                return stub.vanilliRequestBody;
-
-            }), function (err) {
+            sendStubs(function (err) {
                 stubs.length = 0;
 
                 if (err instanceof Error) {
@@ -401,7 +426,9 @@
 
     context.expectRequest = function (stub, times) {
         function convertToExpectation(stub) {
-            stub.vanilliRequestBody.times = isNaN(times) ? 1 : times;
+            if (isNaN(stub.vanilliRequestBody.times)) {
+                stub.vanilliRequestBody.times = isNaN(times) ? 1 : times;
+            }
             stub.vanilliRequestBody.expect = true;
 
             return stub;

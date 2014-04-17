@@ -192,7 +192,8 @@ describe("milli", function () {
             fakeVanilli.respond();
         });
 
-        it("can be used to add a single expectation", function (done) {
+        it("can be used to add a single expectation (asynchronously)", function (done) {
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             milli.stub(
@@ -201,9 +202,27 @@ describe("milli", function () {
 
             fakeVanilli.respond();
 
-            var vanilliRequest = fakeVanilli.requests[0];
+            var requestBody = JSON.parse(vanilliSpy.getCall(0).args[0].requestBody);
 
-            expect(vanilliRequest.vanilliRequestBody.times).to.equal(3);
+            expect(requestBody.times).to.equal(3);
+        });
+
+        it("can be used to add a single expectation (synchronously)", function () {
+            // Given
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
+
+            // When
+            milli.expect(
+                onGet('/some/url').respondWith(200).times(3)
+            );
+
+            fakeVanilli.respond();
+
+            // Then
+            var requestBody = JSON.parse(vanilliSpy.getCall(0).args[0].requestBody);
+
+            expect(requestBody[0].times).to.equal(3);
         });
 
         it("will clone the stub used as an expectation", function (done) {
@@ -223,19 +242,48 @@ describe("milli", function () {
             expect(vanilliRequest.vanilliRequestBody.times).to.equal(3);
         });
 
-        it("sets the 'times' of an expectation to 1 if not explicitly specified", function (done) {
+        it("sets the 'times' of an expectation to 1 if not explicitly specified (asynchronously)", function (done) {
 
+            // Given
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
+            // When
             milli.stub(
                 expectRequest(onGet('/some/url').respondWith(200))
             ).run(done);
 
             fakeVanilli.respond();
 
-            var vanilliRequest = fakeVanilli.requests[0];
+            // Then
+            var requestBody = JSON.parse(vanilliSpy.getCall(0).args[0].requestBody);
 
-            expect(vanilliRequest.vanilliRequestBody.times).to.equal(1);
+            expect(requestBody[0].times).to.equal(1);
+        });
+
+        it("sets the 'times' of an expectation to 1 if not explicitly specified (synchronously)", function () {
+
+            // Given
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
+
+            // When
+            milli.expect(
+                onGet('/some/url').respondWith(200)
+            );
+
+            fakeVanilli.respond();
+
+            // Then
+            var requestBody = JSON.parse(vanilliSpy.getCall(0).args[0].requestBody);
+
+            expect(requestBody[0].times).to.equal(1);
+        });
+
+        it("throws an error if 'times' is specified against a standard stub (synchronously)", function () {
+            expect(function () {
+                milli.allow(onGet('/some/url').respondWith(200).times(3));
+            }).to.throw(/times/);
         });
 
         it("can be used to chain multiple stubs together so that only one call is made to Vanilli", function (done) {
@@ -244,11 +292,14 @@ describe("milli", function () {
 
             milli
                 .stub(onGet('/some/url').respondWith(200))
-                .stub(onGet('/some/other/url').respondWith(200)).run(function () {
+                .stub(onGet('/some/other/url').respondWith(200))
+                .run(function () {
                     expect(vanilliSpy.calledOnce).to.be.truthy;
 
                     var call = vanilliSpy.getCall(0),
                         requestBody = JSON.parse(call.args[0].requestBody);
+
+                    console.log(requestBody);
 
                     expect(requestBody[0].criteria.url).to.equal('/some/url');
                     expect(requestBody[1].criteria.url).to.equal('/some/other/url');
@@ -260,9 +311,11 @@ describe("milli", function () {
         });
 
         it("can be used to chain a combination of stubs AND expectations together so that only one call is made to Vanilli", function (done) {
+            // Given
             var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
+            // When
             milli
                 .stub(onGet('/some/url').respondWith(200))
                 .stub(expectRequest(onGet('/some/other/url').respondWith(200)).times(2))
@@ -273,18 +326,14 @@ describe("milli", function () {
                 });
 
             fakeVanilli.respond();
-        });
 
-        it("can be used to chain a combination of stubs AND expectations together in one synchronous request to Vanilli", function () {
-            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
-            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
-
-            milli.storeStubs(
-                onGet('/some/url').respondWith(200),
-                expectRequest(onGet('/some/other/url').respondWith(200)).times(2),
-                onGet('/yet/another/url').respondWith(200));
-
+            // Then
             expect(vanilliSpy.calledOnce).to.be.true;
+
+            var call = vanilliSpy.getCall(0),
+                requestBody = JSON.parse(call.args[0].requestBody);
+
+            expect(requestBody.length).to.equal(3);
         });
 
         it("throws an error for a missing url", function () {

@@ -12,7 +12,7 @@ describe("milli", function () {
     });
 
     it("can clear down stubs synchronously", function (done) {
-        milli.storeStubs(
+        milli.allow(
             onGet('/my/url').respondWith(234));
 
         request.get("http://localhost:" + vanilliPort + "/my/url")
@@ -32,16 +32,27 @@ describe("milli", function () {
     });
 
     it("can verify expectations synchronously", function () {
-        milli.storeStubs(
-            expectRequest(onGet('/my/url').respondWith(234)));
+        milli.expect(onGet('/my/url').respondWith(234));
 
         expect(milli.verifyExpectationsSync).to.throw(/Vanilli expectations were not met/);
     });
 
     it("can add stubs synchronously", function (done) {
-        milli.storeStubs(
+        milli.allow(
             onGet('/my/url').respondWith(234),
             onGet('/another/url').respondWith(222));
+
+        request.get("http://localhost:" + vanilliPort + "/my/url")
+            .end(function (err, res) {
+                if (err) return done(err);
+                expect(res.status).to.equal(234);
+                done();
+            });
+    });
+
+    it("can add expectations synchronously", function (done) {
+        milli.expect(
+            onGet('/my/url').respondWith(234));
 
         request.get("http://localhost:" + vanilliPort + "/my/url")
             .end(function (err, res) {
@@ -55,23 +66,22 @@ describe("milli", function () {
         var expectedResponseBody = { myfield: "myvalue" },
             captureId = "mycapture";
 
-        milli.stub(onPost('/my/url').capture(captureId).respondWith(234))
-            .run(function () {
-                request.post("http://localhost:" + vanilliPort + "/my/url")
-                    .send(expectedResponseBody)
-                    .end(function (err) {
-                        if (err instanceof Error) return done(err);
+        milli.expect(onPost('/my/url').capture(captureId).respondWith(234));
 
-                        var capture = milli.getCaptureSync(captureId);
+        request.post("http://localhost:" + vanilliPort + "/my/url")
+            .send(expectedResponseBody)
+            .end(function (err) {
+                if (err instanceof Error) return done(err);
 
-                        if (capture instanceof Error) {
-                            done(capture);
-                        }
+                var capture = milli.getCaptureSync(captureId);
 
-                        expect(capture.body).to.deep.equal(expectedResponseBody);
+                if (capture instanceof Error) {
+                    done(capture);
+                }
 
-                        done();
-                    });
+                expect(capture.body).to.deep.equal(expectedResponseBody);
+
+                done();
             });
     });
 });
