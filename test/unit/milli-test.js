@@ -644,14 +644,6 @@ describe("milli", function () {
             expect(milli.apis.myapi.myResource).is.equal(resource.myResource);
         });
 
-        it("will not accept a REST resource without a uri template", function () {
-            expect(function () {
-                milli.registerApi("someapi", {
-                    myResource: {}
-                });
-            }).to.throw(/template/i);
-        });
-
         it("will not accept a REST resource without an API name", function () {
             expect(function () {
                 milli.registerApi(null, {

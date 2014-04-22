@@ -329,10 +329,6 @@
                     var resource = resources[resourceName],
                         api = self.apis[apiName];
 
-                    if ((typeof resource !== 'string') && (!resource.url)) {
-                        throw new Error("A uri template must be specified for the resource.");
-                    }
-
                     if (!api) {
                         api = self.apis[apiName] = {};
                     }
