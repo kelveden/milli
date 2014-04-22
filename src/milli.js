@@ -242,8 +242,14 @@
                 });
         }
 
-        function addStubsTo(stubs, stubDefinitions) {
-            function addStub(stub) {
+        function buildStubsFrom(stubDefinitions) {
+            var stubs = [];
+
+            if (stubDefinitions.length === 0) {
+                throw new Error("Stub content must be specified.");
+            }
+
+            stubDefinitions.forEach(function (stub) {
                 if (stub instanceof Stub) {
                     throw new Error("Stub " + JSON.stringify(stub) + " is incomplete - make sure you use a call to 'respondWith' to complete the stub.");
                 }
@@ -253,14 +259,6 @@
                 }
 
                 stubs.push(stub);
-            }
-
-            if (stubDefinitions.length === 0) {
-                throw new Error("Stub content must be specified.");
-            }
-
-            stubDefinitions.forEach(function (stubDefinition) {
-                addStub(stubDefinition);
             });
 
             return stubs;
@@ -281,34 +279,32 @@
         };
 
         self.stub = function () {
-            addStubsTo(asyncStubs, argsToArray(arguments));
+            buildStubsFrom(argsToArray(arguments)).forEach(function (stub) {
+                asyncStubs.push(stub);
+            });
 
             return self;
         };
 
         self.allow = function () {
-            var stubs = [];
+            var stubs = buildStubsFrom(argsToArray(arguments));
 
-            addStubsTo(stubs, argsToArray(arguments))
-                .forEach(function (stub) {
-                    if (!isNaN(stub.vanilliRequestBody.times)) {
-                        throw new Error("Stubs cannot be specified with 'times' - use an expectation instead.");
-                    }
-                });
+            stubs.forEach(function (stub) {
+                if (!isNaN(stub.vanilliRequestBody.times)) {
+                    throw new Error("Stubs cannot be specified with 'times' - use an expectation instead.");
+                }
+            });
 
             return sendStubs(stubs, false);
         };
 
         self.expect = function () {
-            var stubs = [],
-                expectations = argsToArray(arguments).map(
-                function (stub) {
-                    return expectRequest(stub);
-                });
+            var expectations = buildStubsFrom(argsToArray(arguments).map(
+                    function (stub) {
+                        return expectRequest(stub);
+                    }));
 
-            addStubsTo(stubs, expectations);
-
-            return sendStubs(stubs, false);
+            return sendStubs(expectations, false);
         };
 
         self.run = function (next) {
@@ -370,8 +366,8 @@
             return verify(false);
         };
 
-        self.ignoreCallsTo = function() {
-            function setResponseContentTypeOn (respondWith, resource) {
+        self.ignoreCallsTo = function () {
+            function setResponseContentTypeOn(respondWith, resource) {
                 if (!resource.defaultResponse.contentType) {
                     if (resource.produces) {
                         respondWith.contentType(resource.produces);
@@ -409,10 +405,7 @@
                 ignores.push(stubRespondWith);
             });
 
-            var stubs = [];
-            addStubsTo(stubs, ignores);
-
-            sendStubs(stubs, false);
+            sendStubs(buildStubsFrom(ignores), false);
 
             return ignores;
         };
