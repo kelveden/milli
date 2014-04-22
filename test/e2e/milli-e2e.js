@@ -7,7 +7,6 @@ describe("milli", function () {
         milli.configure({ port: vanilliPort });
         done();
     });
-
     describe("stubs", function () {
         beforeEach(function (done) {
             milli.clearStubs(function (err) {
@@ -153,6 +152,26 @@ describe("milli", function () {
                             expect(res.status).to.equal(404);
                             done();
                         });
+                });
+        });
+    });
+
+    describe("ignores", function () {
+        beforeEach(function (done) {
+            milli.clearStubs(function (err) {
+                done(err);
+            });
+        });
+
+        it("can be stored", function (done) {
+            milli.ignoreCallsTo('/my/url');
+
+            request.get("http://localhost:" + vanilliPort + "/my/url")
+                .end(function (err, res) {
+                    if (err) return done(err);
+
+                    expect(res.status).to.equal(200);
+                    done();
                 });
         });
     });

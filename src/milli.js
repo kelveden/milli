@@ -64,8 +64,6 @@
             stub.respondWith.status = status;
         }
 
-        stub.respondWith.status = status;
-
         this.entity = function (body, contentType) {
             stub.respondWith.body = body;
             stub.respondWith.contentType = contentType;
@@ -111,8 +109,8 @@
     function Milli() {
 
         var vanilliPort,
-            stubs = [],
             self = this,
+            asyncStubs = [],
             Promiser;
 
         self.apis = {};
@@ -180,7 +178,7 @@
             }
         }
 
-        function sendStubs(done) {
+        function sendStubs(stubs, done) {
             var body = JSON.stringify(
                 stubs.map(function (stub) {
                     return stub.vanilliRequestBody;
@@ -244,7 +242,7 @@
                 });
         }
 
-        function addStubs(stubDefinitions) {
+        function addStubsTo(stubs, stubDefinitions) {
             function addStub(stub) {
                 if (stub instanceof Stub) {
                     throw new Error("Stub " + JSON.stringify(stub) + " is incomplete - make sure you use a call to 'respondWith' to complete the stub.");
@@ -279,40 +277,43 @@
 
             vanilliPort = config.port;
             Promiser = config.promiser;
-            stubs.length = 0;
+            asyncStubs.length = 0;
         };
 
         self.stub = function () {
-            addStubs(argsToArray(arguments));
+            addStubsTo(asyncStubs, argsToArray(arguments));
 
             return self;
         };
 
         self.allow = function () {
-            addStubs(argsToArray(arguments))
+            var stubs = [];
+
+            addStubsTo(stubs, argsToArray(arguments))
                 .forEach(function (stub) {
                     if (!isNaN(stub.vanilliRequestBody.times)) {
                         throw new Error("Stubs cannot be specified with 'times' - use an expectation instead.");
                     }
                 });
 
-            return sendStubs(false);
+            return sendStubs(stubs, false);
         };
 
         self.expect = function () {
-            var expectations = argsToArray(arguments).map(
+            var stubs = [],
+                expectations = argsToArray(arguments).map(
                 function (stub) {
                     return expectRequest(stub);
                 });
 
-            addStubs(expectations);
+            addStubsTo(stubs, expectations);
 
-            return sendStubs(false);
+            return sendStubs(stubs, false);
         };
 
         self.run = function (next) {
-            sendStubs(function (err) {
-                stubs.length = 0;
+            sendStubs(asyncStubs, function (err) {
+                asyncStubs.length = 0;
 
                 if (err instanceof Error) {
                     throw err;
@@ -368,6 +369,53 @@
         self.verifyExpectationsSync = function () {
             return verify(false);
         };
+
+        self.ignoreCallsTo = function() {
+            function setResponseContentTypeOn (respondWith, resource) {
+                if (!resource.defaultResponse.contentType) {
+                    if (resource.produces) {
+                        respondWith.contentType(resource.produces);
+                    } else {
+                        throw new Error("Either a resource.produces or resource.defaultResponse.contentType must be specified.");
+                    }
+                }
+            }
+
+            var urlsOrResources = argsToArray(arguments),
+                ignores = [];
+
+            urlsOrResources.forEach(function (candidate) {
+                var substitutionData = {},
+                    urlOrResource = candidate,
+                    stubRespondWith;
+
+                if (Array.isArray(candidate)) {
+                    urlOrResource = candidate[0];
+                    substitutionData = candidate[1];
+                }
+
+                substitutionData[matchAnyPlaceholderSubtitution] = "[\\s\\S]+?";
+
+                if (urlOrResource.defaultResponse) {
+                    stubRespondWith = context.onRequest(null, urlOrResource, substitutionData).respondWith(urlOrResource.defaultResponse);
+
+                    if (typeof urlOrResource.defaultResponse.body !== 'undefined') {
+                        setResponseContentTypeOn(stubRespondWith, urlOrResource);
+                    }
+                } else {
+                    stubRespondWith = context.onRequest(null, urlOrResource, substitutionData).respondWith(200);
+                }
+
+                ignores.push(stubRespondWith);
+            });
+
+            var stubs = [];
+            addStubsTo(stubs, ignores);
+
+            sendStubs(stubs, false);
+
+            return ignores;
+        };
     }
 
     var matchAnyPlaceholderSubtitution = "*";
@@ -393,7 +441,8 @@
         function addLeftoverSubstitutionsAsQueryParameters(stub, substitutionData) {
             if (substitutionData) {
                 for (var paramName in substitutionData) {
-                    if (!substitutedPlaceholders[paramName] && (paramName !== matchAnyPlaceholderSubtitution)) {
+                    if (substitutionData.hasOwnProperty(paramName) &&
+                        (!substitutedPlaceholders[paramName] && (paramName !== matchAnyPlaceholderSubtitution))) {
                         stub.param(paramName, substitutionData[paramName]);
                     }
                 }
@@ -433,48 +482,6 @@
 
     context.onPost = function (urlOrResource, substitutionData) {
         return context.onRequest('POST', urlOrResource, substitutionData);
-    };
-
-    context.ignoreCallsTo = function() {
-        function setResponseContentTypeOn (respondWith, resource) {
-            if (!resource.defaultResponse.contentType) {
-                if (resource.produces) {
-                    respondWith.contentType(resource.produces);
-                } else {
-                    throw new Error("Either a resource.produces or resource.defaultResponse.contentType must be specified.");
-                }
-            }
-        }
-
-        var urlsOrResources = argsToArray(arguments),
-            stubs = [];
-
-        urlsOrResources.forEach(function (candidate) {
-            var substitutionData = {},
-                urlOrResource = candidate,
-                stubRespondWith;
-
-            if (Array.isArray(candidate)) {
-                urlOrResource = candidate[0];
-                substitutionData = candidate[1];
-            }
-
-            substitutionData[matchAnyPlaceholderSubtitution] = "[\\s\\S]+?";
-
-            if (urlOrResource.defaultResponse) {
-                stubRespondWith = onRequest(null, urlOrResource, substitutionData).respondWith(urlOrResource.defaultResponse);
-
-                if (typeof urlOrResource.defaultResponse.body !== 'undefined') {
-                    setResponseContentTypeOn(stubRespondWith, urlOrResource);
-                }
-            } else {
-                stubRespondWith = onRequest(null, urlOrResource, substitutionData).respondWith(200);
-            }
-
-            stubs.push(stubRespondWith);
-        });
-
-        return stubs;
     };
 
     context.expectRequest = function (stub, times) {
