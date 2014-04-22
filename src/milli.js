@@ -1,4 +1,8 @@
 (function (context) {
+    function argsToArray(args) {
+        return Array.prototype.slice.call(args, 0);
+    }
+
     function Stub(method, url, defaultRequestContentType, defaultResponseContentType) {
         this.entity = function (body, contentType) {
             stub.criteria.body = body;
@@ -41,16 +45,25 @@
         };
 
         var stub = {
-            criteria: {
-                method: method
-            },
+            criteria: {},
             respondWith: {}
         };
+
+        if (method) {
+            stub.criteria.method = method;
+        }
 
         stub.criteria.url = url;
     }
 
     function StubRespondWith(stub, status, defaultContentType) {
+        if (typeof status === 'object') {
+            // 'status' is actually an entire respondWith object - typically sent in from an 'ignored call'.
+            stub.respondWith = status;
+        } else {
+            stub.respondWith.status = status;
+        }
+
         stub.respondWith.status = status;
 
         this.entity = function (body, contentType) {
@@ -255,10 +268,6 @@
             return stubs;
         }
 
-        function argsToArray(args) {
-            return Array.prototype.slice.call(args, 0);
-        }
-
         self.configure = function (config) {
             if (!config) {
                 throw new Error("Config must be specified.");
@@ -361,13 +370,15 @@
         };
     }
 
-    function onRequest(method, urlOrResource, substitutionData) {
+    var matchAnyPlaceholderSubtitution = "*";
+
+    context.onRequest = function (method, urlOrResource, substitutionData) {
         var substitutedPlaceholders = {};
 
         function substituteTemplatePlaceholders(uriTemplate, substitutionData) {
             return uriTemplate.replace(/:[a-zA-Z][0-9a-zA-Z]+/g, function (placeholder) {
                 var paramName = placeholder.substr(1),
-                    paramValue = substitutionData[paramName];
+                    paramValue = substitutionData[paramName] || substitutionData["*"];
 
                 if (paramValue === undefined) {
                     throw new Error("Could not find substitution for placeholder '" + placeholder + "'.");
@@ -382,7 +393,7 @@
         function addLeftoverSubstitutionsAsQueryParameters(stub, substitutionData) {
             if (substitutionData) {
                 for (var paramName in substitutionData) {
-                    if (!substitutedPlaceholders[paramName]) {
+                    if (!substitutedPlaceholders[paramName] && (paramName !== matchAnyPlaceholderSubtitution)) {
                         stub.param(paramName, substitutionData[paramName]);
                     }
                 }
@@ -406,22 +417,64 @@
         addLeftoverSubstitutionsAsQueryParameters(stub, substitutionData);
 
         return stub;
-    }
+    };
 
     context.onGet = function (urlOrResource, substitutionData) {
-        return onRequest('GET', urlOrResource, substitutionData);
+        return context.onRequest('GET', urlOrResource, substitutionData);
     };
 
     context.onDelete = function (urlOrResource, substitutionData) {
-        return onRequest('DELETE', urlOrResource, substitutionData);
+        return context.onRequest('DELETE', urlOrResource, substitutionData);
     };
 
     context.onPut = function (urlOrResource, substitutionData) {
-        return onRequest('PUT', urlOrResource, substitutionData);
+        return context.onRequest('PUT', urlOrResource, substitutionData);
     };
 
     context.onPost = function (urlOrResource, substitutionData) {
-        return onRequest('POST', urlOrResource, substitutionData);
+        return context.onRequest('POST', urlOrResource, substitutionData);
+    };
+
+    context.ignoreCallsTo = function() {
+        function setResponseContentTypeOn (respondWith, resource) {
+            if (!resource.defaultResponse.contentType) {
+                if (resource.produces) {
+                    respondWith.contentType(resource.produces);
+                } else {
+                    throw new Error("Either a resource.produces or resource.defaultResponse.contentType must be specified.");
+                }
+            }
+        }
+
+        var urlsOrResources = argsToArray(arguments),
+            stubs = [];
+
+        urlsOrResources.forEach(function (candidate) {
+            var substitutionData = {},
+                urlOrResource = candidate,
+                stubRespondWith;
+
+            if (Array.isArray(candidate)) {
+                urlOrResource = candidate[0];
+                substitutionData = candidate[1];
+            }
+
+            substitutionData[matchAnyPlaceholderSubtitution] = "[\\s\\S]+?";
+
+            if (urlOrResource.defaultResponse) {
+                stubRespondWith = onRequest(null, urlOrResource, substitutionData).respondWith(urlOrResource.defaultResponse);
+
+                if (typeof urlOrResource.defaultResponse.body !== 'undefined') {
+                    setResponseContentTypeOn(stubRespondWith, urlOrResource);
+                }
+            } else {
+                stubRespondWith = onRequest(null, urlOrResource, substitutionData).respondWith(200);
+            }
+
+            stubs.push(stubRespondWith);
+        });
+
+        return stubs;
     };
 
     context.expectRequest = function (stub, times) {

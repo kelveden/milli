@@ -64,8 +64,22 @@ This stub would only be matched against a GET request to "/my/url" that included
 Tells milli about one or more expectations. Setting up an expectation looks exactly the same as setting up a stub except that there is the extra option of
 specifying the number of times that the stub is expected to be invoked.
 
+### milli.ignoreCallsTo(call1, call2, ..., call3)
+Tells milli to ignore calls to the specified list of urls and/or rest resources. Is simply a one-line shortcut to setting up the "ignoring" stubs as usual. E.g.:
+
+    milli.ignoreCallsTo("/my/url", "/another/url", milli.apis.myapi.myresource);
+
+would result in simple "match any HTTP method and respond with 200" stubs being set up for the specified urls. (The content type of the empty response will be picked up from the rest
+resource definition as usual unless a `defaultResponse` is specified - see below.) The placeholders in the URI template for the rest resource will be substituted with `[\\s\\S]+?` (i.e. match anything).
+
+The URL templates in a rest resource can still take in one or more subtitutions as usual by wrapping the resource as an array:
+
+    milli.ignoreCallsTo("/my/url", "/another/url", [ milli.apis.myapi.myresource, { param1: "subtitution" }]);
+
+If, in the rest resource definition, a "defaultResponse" is specified then that will be used instead of an empty 200 response.
+
 ### milli.run(callback)
-Causes milli to submit all stubs and expectations setup via `stub` and `expect` to vanilli. The specified callback is then executed.
+Causes milli to submit all stubs and expectations setup via the asynchronous `stub` to vanilli. The specified callback is then executed. It is not necessary to run this when using milli synchronously.
 
 ### milli.verifyExpectations([doneCallback])
 Verifies that all expectations setup via `expect` have been met. If expectations have not been met, the doneCallback argument is called passing in a new Error object to it as the first argument; otherwise the doneCallback is called with no arguments.
@@ -77,9 +91,9 @@ Allows the configuration of milli. See the 'Configuration' section below for mor
 Provides a convenience mechanism for sharing RESTful service URLs across tests. Simply tell milli about the API of the REST service that you will be stubbing out and then milli will expose the URLs for that API for specifying in calls to `milli.stub` and `milli.expect`. E.g.
 
 	milli.registerApi("myRestService", {
-		restResource1: "some/url/or/other",
-		restResource2: "some/.+/pattern",
-		restResource3: "some/url/with/parameters/:param1"
+		restResource1: { url: "some/url/or/other", produces: "application/json" },
+		restResource2: { url: "some/.+/pattern", produces: "application/xml" },
+		restResource3: { url: "some/url/with/parameters/:param1", produces: "text/plain" }
 	});
 
 	...
@@ -88,6 +102,13 @@ Provides a convenience mechanism for sharing RESTful service URLs across tests. 
 		onGet(milli.apis.myRestService.restResource3, { param1: "somevalue" })
 			.respondWith(200));
 
+A default response can also be specified for use with the `ignoreCallsTo` function; e.g.
+
+    milli.registerApi("myapi", {
+        myresource: { url: "/some/url", produces: "application/json", defaultResponse: { status: 200, body: "something", contentType: "text/plain" } }
+    });
+
+(The content type of the response will be picked up from the "produces" field if not explicitly specified in the defaultResponse.)
 
 ### milli.clearStubs(doneCallback)
 Tells vanilli to clear down all stubs and expectations. After this is done, the specified `doneCallback` is executed.

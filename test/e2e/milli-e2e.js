@@ -121,6 +121,28 @@ describe("milli", function () {
                 });
         });
 
+        it("will be used to serve the response for matching requests with an indeterminate method", function (done) {
+            var expectedRequestBody = { myfield1: "myvalue1" },
+                expectedResponseBody = { myfield2: "myvalue2" };
+
+            milli.stub(onRequest(null, '/my/url')
+                    .entity(expectedRequestBody, "application/json")
+                    .respondWith(234)
+                    .entity(expectedResponseBody, "application/json")).run(
+                function () {
+                    request.post("http://localhost:" + vanilliPort + "/my/url")
+                        .send(expectedRequestBody)
+                        .end(function (err, res) {
+                            if (err) return done(err);
+
+                            expect(res.status).to.equal(234);
+                            expect(res.body).to.deep.equal(expectedResponseBody);
+                            expect(res.header['content-type']).to.equal("application/json");
+                            done();
+                        });
+                });
+        });
+
         it("will NOT be used to serve responses for requests that do not match", function (done) {
             milli.stub(onGet('/my/url').respondWith(234)).run(
                 function () {

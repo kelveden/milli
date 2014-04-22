@@ -168,6 +168,138 @@ describe("milli", function () {
 
             expect(stub.vanilliRequestBody.respondWith.wait).to.equal(2000);
         });
+
+        it("creates a loose stub in response to a request for an ignored path", function () {
+            var stubs = ignoreCallsTo("/my/url");
+
+            expect(JSON.stringify(stubs[0].vanilliRequestBody)).to.equal(JSON.stringify({
+                criteria: {
+                    url: "/my/url"
+                },
+                respondWith: {
+                    status: 200
+                }
+            }));
+        });
+
+        it("creates many loose stubs in response to a request for many ignored paths", function () {
+            var stubs = ignoreCallsTo("/my/url", "/some/other/url", "/a/url/with/regex/.+");
+
+            expect(stubs[0].vanilliRequestBody.criteria.url).to.equal("/my/url");
+            expect(stubs[1].vanilliRequestBody.criteria.url).to.equal("/some/other/url");
+            expect(stubs[2].vanilliRequestBody.criteria.url).to.equal("/a/url/with/regex/.+");
+        });
+
+        it("creates a loose stub with the default response for an ignored rest resource", function () {
+            // Given
+            milli.registerApi("myapi", {
+                myResource: {
+                    url: "/my/url"
+                }
+            });
+
+            // When
+            var stubs = ignoreCallsTo(milli.apis.myapi.myResource);
+
+            // Then
+            expect(stubs[0].vanilliRequestBody.criteria.url).to.equal("/my/url");
+        });
+
+        it("creates a loose stub with the canned response specified in the rest registry for an ignored rest resource", function () {
+            // Given
+            milli.registerApi("myapi", {
+                myResource: {
+                    url: "/my/url",
+                    produces: "text/plain",
+                    defaultResponse: {
+                        status: 234,
+                        body: "something"
+                    }
+                }
+            });
+
+            // When
+            var stubs = ignoreCallsTo(milli.apis.myapi.myResource);
+
+            // Then
+            expect(stubs[0].vanilliRequestBody.respondWith.body).to.equal("something");
+            expect(stubs[0].vanilliRequestBody.respondWith.contentType).to.equal("text/plain");
+        });
+
+        it("throws an error if an ignored rest resource is specified with no contentType in 'produces' AND 'defaultResponse'", function () {
+            // Given
+            milli.registerApi("myapi", {
+                myResource: {
+                    url: "/my/url",
+                    defaultResponse: {
+                        status: 234,
+                        body: "something"
+                    }
+                }
+            });
+
+            // Then
+            expect(function () { ignoreCallsTo(milli.apis.myapi.myResource); }).to.throw(/contentType/);
+        });
+
+        it("uses the content type specified in the rest registry for an ignored rest resource", function () {
+            // Given
+            milli.registerApi("myapi", {
+                myResource: {
+                    url: "/my/url",
+                    produces: "my/contenttype",
+                    defaultResponse: {
+                        status: 200,
+                        body: "something"
+                    }
+                }
+            });
+
+            // When
+            var stubs = ignoreCallsTo(milli.apis.myapi.myResource);
+
+            // Then
+            expect(stubs[0].vanilliRequestBody.respondWith.contentType).to.equal("my/contenttype");
+        });
+
+        it("uses the content type specified in the defaultResponse (if specified) for an ignored rest resource", function () {
+            // Given
+            milli.registerApi("myapi", {
+                myResource: {
+                    url: "/my/url",
+                    produces: "my/contenttype",
+                    defaultResponse: {
+                        status: 234,
+                        body: "something",
+                        contentType: "text/plain"
+                    }
+                }
+            });
+
+            // When
+            var stubs = ignoreCallsTo(milli.apis.myapi.myResource);
+
+            // Then
+            expect(stubs[0].vanilliRequestBody.respondWith.contentType).to.equal("text/plain");
+        });
+
+        it("substitutes remaining placeholders in ignored rest resource with [\\s\\S]+?", function () {
+
+            // Given
+            var resource = {
+                myResource: {
+                    url: "/:my/url/with/:placeholder"
+                }
+            };
+
+            milli.registerApi("myapi", resource);
+
+            // When
+            var stubs = ignoreCallsTo([milli.apis.myapi.myResource, { my: "something" }]);
+
+            // Then
+            expect(stubs[0].vanilliRequestBody.criteria.url).to.equal("/something/url/with/[\\s\\S]+?");
+        });
     });
 
     it("stub cloner can clone a stub", function () {
@@ -298,8 +430,6 @@ describe("milli", function () {
 
                     var call = vanilliSpy.getCall(0),
                         requestBody = JSON.parse(call.args[0].requestBody);
-
-                    console.log(requestBody);
 
                     expect(requestBody[0].criteria.url).to.equal('/some/url');
                     expect(requestBody[1].criteria.url).to.equal('/some/other/url');
@@ -496,14 +626,6 @@ describe("milli", function () {
 
             expect(milli.apis.myapi.myResource).to.exist;
             expect(milli.apis.myapi.myResource).is.equal(resource.myResource);
-        });
-
-        it("will accept a REST resource expressed simply as a URL", function () {
-            milli.registerApi("myapi", {
-                myResource: "/my/url"
-            });
-
-            expect(milli.apis.myapi.myResource).to.exist;
         });
 
         it("will not accept a REST resource without a uri template", function () {
