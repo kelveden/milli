@@ -74,13 +74,8 @@ Tells milli to ignore calls to the specified list of urls and/or rest resources.
     milli.ignoreCallsTo([ "/my/url", "/another/url", milli.apis.myapi.myresource ]);
 
 would result in simple "match any HTTP method and respond with 200" stubs being set up for the specified urls. (The content type of the empty response will be picked up from the rest
-resource definition as usual unless a `defaultResponse` is specified - see below.) The placeholders in the URI template for the rest resource will be substituted with `[\\s\\S]+?` (i.e. match anything).
-
-The URL templates in a rest resource can still take in one or more subtitutions as usual by wrapping the resource as an array:
-
-    milli.ignoreCallsTo("/my/url", "/another/url", [ milli.apis.myapi.myresource, { param1: "subtitution" }]);
-
-If, in the rest resource definition, a "defaultResponse" is specified then that will be used instead of an empty 200 response.
+resource definition as usual unless a `defaultResponse` is specified - see 'Referring to a pre-defined REST API instead of plain urls' below.) The placeholders in the URI template
+for the rest resource will be substituted with `[\\s\\S]+?` (i.e. match anything).
 
 ### milli.run(callback)
 Causes milli to submit all stubs and expectations setup via the asynchronous `stub` to vanilli. The specified callback is then executed. It is not necessary to run this when using milli synchronously.
@@ -90,29 +85,6 @@ Verifies that all expectations setup via `expect` have been met. If expectations
 
 ### milli.configure(config)
 Allows the configuration of milli. See the 'Configuration' section below for more information.
-
-### milli.registerApi(restServiceName, restServiceApi)
-Provides a convenience mechanism for sharing RESTful service URLs across tests. Simply tell milli about the API of the REST service that you will be stubbing out and then milli will expose the URLs for that API for specifying in calls to `milli.stub` and `milli.expect`. E.g.
-
-	milli.registerApi("myRestService", {
-		restResource1: { url: "some/url/or/other", produces: "application/json" },
-		restResource2: { url: "some/.+/pattern", produces: "application/xml" },
-		restResource3: { url: "some/url/with/parameters/:param1", produces: "text/plain" }
-	});
-
-	...
-
-	milli.stub(
-		onGet(milli.apis.myRestService.restResource3, { param1: "somevalue" })
-			.respondWith(200));
-
-A default response can also be specified for use with the `ignoreCallsTo` function; e.g.
-
-    milli.registerApi("myapi", {
-        myresource: { url: "/some/url", produces: "application/json", defaultResponse: { status: 200, body: "something", contentType: "text/plain" } }
-    });
-
-(The content type of the response will be picked up from the "produces" field if not explicitly specified in the defaultResponse.)
 
 ### milli.clearStubs(doneCallback)
 Tells vanilli to clear down all stubs and expectations. After this is done, the specified `doneCallback` is executed.
@@ -220,6 +192,39 @@ They are simply stubs with the one subtle difference:
 
 * The `StubRespondWith.times` function has a different effect - 1) the stub will match ANY number of times, regardless of the number specified; 2) BUT `milli.verifyExpectations` will
 fail if the number of times the stub was called differs the number of times specified against the stub.
+
+Referring to a pre-defined REST API instead of plain urls
+---------------------------------------------------------
+Instead of specifying a url (e.g. `onGet('/my/url')`) one can also define a templated REST API ahead of time and reference that instead. The format of a single resource is crude:
+
+    var myApi.myResource = {
+        url: "/some/url/:param1",
+        produces: "application/json"
+    };
+
+One can then simply reference the resource instead of a url in milli; e.g.:
+
+	milli.allow(
+		onGet(myApi.myResource, { param1: "whatever" }).respondWith(200)
+	);
+
+Note the substitution object that will be used to substitute values in the URI template of the resource. So, in the example above, the url that would actually be matched against by
+milli would be `/some/url/whatever`.
+
+A default response can also be specified for use with the `ignoreCallsTo` function; e.g.
+
+    var myApi.myResource = {
+        url: "/some/url/:param1",
+        produces: "application/json",
+        defaultResponse: {
+            status: 400,
+            body: "yikes",
+            contentType: "text/plain"
+        }
+    };
+
+In this case, milli will respond to calls to the resource from the SUT with the response above rather than the default blank 200. (Note that milli will match the placeholders in the
+URI template against *anything*.)
 
 Captures
 --------
