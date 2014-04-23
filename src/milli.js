@@ -113,8 +113,6 @@
             asyncStubs = [],
             Promiser;
 
-        self.apis = {};
-
         function sendToVanilli(method, url, data, doneOrSync, successBuilder, errorBuilder) {
             var xhr = new XMLHttpRequest(),
                 syncMode = ((typeof doneOrSync === 'boolean') && !doneOrSync),
@@ -317,25 +315,6 @@
                     next();
                 }
             });
-        };
-
-        self.registerApi = function (apiName, resources) {
-            if (!apiName) {
-                throw new Error("An API name must be specified.");
-            }
-
-            for (var resourceName in resources) {
-                if (resources.hasOwnProperty(resourceName)) {
-                    var resource = resources[resourceName],
-                        api = self.apis[apiName];
-
-                    if (!api) {
-                        api = self.apis[apiName] = {};
-                    }
-
-                    api[resourceName] = resource;
-                }
-            }
         };
 
         self.clearStubs = function (done) {

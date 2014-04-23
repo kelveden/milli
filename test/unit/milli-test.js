@@ -461,14 +461,12 @@ describe("milli", function () {
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             // Given
-            milli.registerApi("myapi", {
-                myResource: {
-                    url: "/my/url"
-                }
-            });
+            var myResource = {
+                url: "/my/url"
+            };
 
             // When
-            var stubs = milli.ignoreCallsTo(milli.apis.myapi.myResource);
+            var stubs = milli.ignoreCallsTo(myResource);
 
             // Then
             expect(stubs[0].vanilliRequestBody.criteria.url).to.equal("/my/url");
@@ -478,19 +476,17 @@ describe("milli", function () {
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             // Given
-            milli.registerApi("myapi", {
-                myResource: {
-                    url: "/my/url",
-                    produces: "text/plain",
-                    defaultResponse: {
-                        status: 234,
-                        body: "something"
-                    }
+            var myResource = {
+                url: "/my/url",
+                produces: "text/plain",
+                defaultResponse: {
+                    status: 234,
+                    body: "something"
                 }
-            });
+            };
 
             // When
-            var stubs = milli.ignoreCallsTo(milli.apis.myapi.myResource);
+            var stubs = milli.ignoreCallsTo(myResource);
 
             // Then
             expect(stubs[0].vanilliRequestBody.respondWith.body).to.equal("something");
@@ -499,19 +495,18 @@ describe("milli", function () {
 
         it("throws an error if an ignored rest resource is specified with no contentType in 'produces' AND 'defaultResponse'", function () {
             // Given
-            milli.registerApi("myapi", {
-                myResource: {
-                    url: "/my/url",
-                    defaultResponse: {
-                        status: 234,
-                        body: "something"
-                    }
+            var myResource = {
+                url: "/my/url",
+                defaultResponse: {
+                    status: 234,
+                    body: "something"
                 }
-            });
+            };
 
             // Then
             expect(function () {
-                    milli.ignoreCallsTo(milli.apis.myapi.myResource); }
+                    milli.ignoreCallsTo(myResource);
+                }
             ).to.throw(/contentType/);
         });
 
@@ -519,19 +514,17 @@ describe("milli", function () {
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             // Given
-            milli.registerApi("myapi", {
-                myResource: {
-                    url: "/my/url",
-                    produces: "my/contenttype",
-                    defaultResponse: {
-                        status: 200,
-                        body: "something"
-                    }
+            var myResource = {
+                url: "/my/url",
+                produces: "my/contenttype",
+                defaultResponse: {
+                    status: 200,
+                    body: "something"
                 }
-            });
+            };
 
             // When
-            var stubs = milli.ignoreCallsTo(milli.apis.myapi.myResource);
+            var stubs = milli.ignoreCallsTo(myResource);
 
             // Then
             expect(stubs[0].vanilliRequestBody.respondWith.contentType).to.equal("my/contenttype");
@@ -541,20 +534,18 @@ describe("milli", function () {
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             // Given
-            milli.registerApi("myapi", {
-                myResource: {
-                    url: "/my/url",
-                    produces: "my/contenttype",
-                    defaultResponse: {
-                        status: 234,
-                        body: "something",
-                        contentType: "text/plain"
-                    }
+            var myResource = {
+                url: "/my/url",
+                produces: "my/contenttype",
+                defaultResponse: {
+                    status: 234,
+                    body: "something",
+                    contentType: "text/plain"
                 }
-            });
+            };
 
             // When
-            var stubs = milli.ignoreCallsTo(milli.apis.myapi.myResource);
+            var stubs = milli.ignoreCallsTo(myResource);
 
             // Then
             expect(stubs[0].vanilliRequestBody.respondWith.contentType).to.equal("text/plain");
@@ -566,15 +557,11 @@ describe("milli", function () {
 
             // Given
             var resource = {
-                myResource: {
-                    url: "/:my/url/with/:placeholder"
-                }
+                url: "/:my/url/with/:placeholder"
             };
 
-            milli.registerApi("myapi", resource);
-
             // When
-            var stubs = milli.ignoreCallsTo(milli.apis.myapi.myResource);
+            var stubs = milli.ignoreCallsTo(resource);
 
             // Then
             expect(stubs[0].vanilliRequestBody.criteria.url).to.equal("/[\\s\\S]+?/url/with/[\\s\\S]+?");
@@ -586,15 +573,11 @@ describe("milli", function () {
 
             // Given
             var resource = {
-                myResource: {
-                    url: "/:my/url/with/:placeholder"
-                }
+                url: "/:my/url/with/:placeholder"
             };
 
-            milli.registerApi("myapi", resource);
-
             // When
-            var stubs = milli.ignoreCallsTo(milli.apis.myapi.myResource);
+            var stubs = milli.ignoreCallsTo(resource);
 
             // Then
             expect(stubs[0].vanilliRequestBody.criteria.url).to.equal("/[\\s\\S]+?/url/with/[\\s\\S]+?");
@@ -660,82 +643,35 @@ describe("milli", function () {
         });
     });
 
-    describe('REST resource registry', function () {
-        beforeEach(function () {
-            milli.apis = {};
-        });
-
-        it("adds a valid REST resource as a globally available stub builder", function () {
-            var resource = {
-                myResource: {
-                    url: "/my/url"
-                }
-            };
-
-            milli.registerApi("myapi", resource);
-
-            expect(milli.apis.myapi.myResource).to.exist;
-            expect(milli.apis.myapi.myResource).is.equal(resource.myResource);
-        });
-
-        it("will not accept a REST resource without an API name", function () {
-            expect(function () {
-                milli.registerApi(null, {
-                    myResource: "/some/url"
-                });
-            }).to.throw(/API name/i);
-        });
-
-        it("adds a valid REST resource to the existing resources", function () {
-            milli.registerApi("myapi", {
-                myResource1: {
-                    url: "/my/url"
-                }
-            });
-            milli.registerApi("myapi", {
-                myResource2: {
-                    url: "/my/url"
-                }
-            });
-
-            expect(milli.apis.myapi.myResource1).to.exist;
-            expect(milli.apis.myapi.myResource2).to.exist;
-        });
-
+    describe('REST resource definition', function () {
         it("can be used to default a response content type for a stub", function () {
-            milli.registerApi("someapi", {
-                myResource1: {
+            var myResource1 = {
                     url: "/my/url",
                     produces: "my/contenttype"
-                }
-            });
+                };
 
-            var stub = onGet(milli.apis.someapi.myResource1).respondWith(dummyStatus).body("somebody");
+            var stub = onGet(myResource1).respondWith(dummyStatus).body("somebody");
 
             expect(stub.vanilliRequestBody.respondWith.contentType).to.equal("my/contenttype");
         });
 
         it("can be used to default a request content type for a stub", function () {
-            milli.registerApi("someapi", {
-                myResource1: {
+            var myResource1 = {
                     url: "/my/url",
                     consumes: "my/contenttype"
-                }
-            });
+                };
 
-            var stub = onPut(milli.apis.someapi.myResource1).body("somebody").respondWith(dummyStatus);
+            var stub = onPut(myResource1).body("somebody").respondWith(dummyStatus);
 
             expect(stub.vanilliRequestBody.criteria.contentType).to.equal("my/contenttype");
         });
 
         it("can be used to substitute a uri template with its placeholders", function () {
-            milli.registerApi("someapi", {
-                myResource1: {
+            var myResource1 = {
                     url: "/my/url/:param1/:param2"
-                }
-            });
+                };
 
-            var stub = onGet(milli.apis.someapi.myResource1, {
+            var stub = onGet(myResource1, {
                 param1: "value1", param2: "value2"
             }).respondWith(dummyStatus).body("somebody");
 
@@ -743,13 +679,11 @@ describe("milli", function () {
         });
 
         it("uses the parameters not matched against uri template placeholders as querystring param expectations", function () {
-            milli.registerApi("someapi", {
-                myResource: {
+            var myResource = {
                     url: "/my/url/:param1"
-                }
-            });
+                };
 
-            var stub = onGet(milli.apis.someapi.myResource, {
+            var stub = onGet(myResource, {
                 param1: "value1", param2: "value2"
             }).respondWith(dummyStatus).body("somebody");
 
