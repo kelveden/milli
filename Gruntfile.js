@@ -99,7 +99,6 @@ module.exports = function (grunt) {
 
     grunt.registerTask('build', [ 'jshint', 'bunyan', 'vanilli:start', 'karma:ci', 'vanilli:stop', 'copy' ]);
     grunt.registerTask('ci', [ 'bower', 'build' ]);
-    grunt.registerTask('publish', [ 'build', 'bump' ]);
 
     grunt.registerTask('default', [ 'build' ]);
 };
