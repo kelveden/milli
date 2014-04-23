@@ -69,6 +69,10 @@ Tells milli to ignore calls to the specified list of urls and/or rest resources.
 
     milli.ignoreCallsTo("/my/url", "/another/url", milli.apis.myapi.myresource);
 
+(Note that the following is also acceptable:)
+
+    milli.ignoreCallsTo([ "/my/url", "/another/url", milli.apis.myapi.myresource ]);
+
 would result in simple "match any HTTP method and respond with 200" stubs being set up for the specified urls. (The content type of the empty response will be picked up from the rest
 resource definition as usual unless a `defaultResponse` is specified - see below.) The placeholders in the URI template for the rest resource will be substituted with `[\\s\\S]+?` (i.e. match anything).
 
