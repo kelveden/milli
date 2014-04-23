@@ -300,9 +300,9 @@
 
         self.expect = function () {
             var expectations = buildStubsFrom(argsToArray(arguments).map(
-                    function (stub) {
-                        return expectRequest(stub);
-                    }));
+                function (stub) {
+                    return expectRequest(stub);
+                }));
 
             return sendStubs(expectations, false);
         };
@@ -376,15 +376,9 @@
             var urlsOrResources = argsToArray(arguments),
                 ignores = [];
 
-            urlsOrResources.forEach(function (candidate) {
+            urlsOrResources.forEach(function (urlOrResource) {
                 var substitutionData = {},
-                    urlOrResource = candidate,
                     stubRespondWith;
-
-                if (Array.isArray(candidate)) {
-                    urlOrResource = candidate[0];
-                    substitutionData = candidate[1];
-                }
 
                 substitutionData[matchAnyPlaceholderSubtitution] = "[\\s\\S]+?";
 

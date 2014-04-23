@@ -546,7 +546,7 @@ describe("milli", function () {
             expect(stubs[0].vanilliRequestBody.respondWith.contentType).to.equal("text/plain");
         });
 
-        it("substitutes remaining placeholders in ignored rest resource with [\\s\\S]+?", function () {
+        it("substitutes placeholders in ignored rest resource with [\\s\\S]+?", function () {
 
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
@@ -560,10 +560,10 @@ describe("milli", function () {
             milli.registerApi("myapi", resource);
 
             // When
-            var stubs = milli.ignoreCallsTo([milli.apis.myapi.myResource, { my: "something" }]);
+            var stubs = milli.ignoreCallsTo(milli.apis.myapi.myResource);
 
             // Then
-            expect(stubs[0].vanilliRequestBody.criteria.url).to.equal("/something/url/with/[\\s\\S]+?");
+            expect(stubs[0].vanilliRequestBody.criteria.url).to.equal("/[\\s\\S]+?/url/with/[\\s\\S]+?");
         });
     });
 
