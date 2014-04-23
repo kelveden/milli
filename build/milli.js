@@ -373,7 +373,7 @@
                 }
             }
 
-            var urlsOrResources = argsToArray(arguments),
+            var urlsOrResources = Array.isArray(arguments[0]) ? arguments[0] : argsToArray(arguments),
                 ignores = [];
 
             urlsOrResources.forEach(function (urlOrResource) {

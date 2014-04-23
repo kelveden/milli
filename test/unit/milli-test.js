@@ -417,6 +417,10 @@ describe("milli", function () {
                 );
             }).to.throw(/not a stub/);
         });
+    });
+
+    describe('ignore adder', function () {
+        var dummyVanilliResponse = JSON.stringify([ "someid" ]);
 
         it("creates a loose stub in response to a request for an ignored path", function () {
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
@@ -437,6 +441,16 @@ describe("milli", function () {
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             var stubs = milli.ignoreCallsTo("/my/url", "/some/other/url", "/a/url/with/regex/.+");
+
+            expect(stubs[0].vanilliRequestBody.criteria.url).to.equal("/my/url");
+            expect(stubs[1].vanilliRequestBody.criteria.url).to.equal("/some/other/url");
+            expect(stubs[2].vanilliRequestBody.criteria.url).to.equal("/a/url/with/regex/.+");
+        });
+
+        it("creates many loose stubs in response to a request for an array of ignored paths", function () {
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
+
+            var stubs = milli.ignoreCallsTo(["/my/url", "/some/other/url", "/a/url/with/regex/.+"]);
 
             expect(stubs[0].vanilliRequestBody.criteria.url).to.equal("/my/url");
             expect(stubs[1].vanilliRequestBody.criteria.url).to.equal("/some/other/url");
@@ -547,6 +561,26 @@ describe("milli", function () {
         });
 
         it("substitutes placeholders in ignored rest resource with [\\s\\S]+?", function () {
+
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
+
+            // Given
+            var resource = {
+                myResource: {
+                    url: "/:my/url/with/:placeholder"
+                }
+            };
+
+            milli.registerApi("myapi", resource);
+
+            // When
+            var stubs = milli.ignoreCallsTo(milli.apis.myapi.myResource);
+
+            // Then
+            expect(stubs[0].vanilliRequestBody.criteria.url).to.equal("/[\\s\\S]+?/url/with/[\\s\\S]+?");
+        });
+
+        it("", function () {
 
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
