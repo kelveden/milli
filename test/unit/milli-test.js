@@ -1,5 +1,9 @@
 /* jshint expr:true */
 describe("milli", function () {
+    function parseRequestBodyFrom(vanilliSpy) {
+        return JSON.parse(vanilliSpy.getCall(0).args[0].requestBody);
+    }
+
     var fakeVanilli, vanilliPort = 1234,
         dummyUrl = "/some/url",
         dummyStatus = 234;
@@ -202,9 +206,7 @@ describe("milli", function () {
 
             fakeVanilli.respond();
 
-            var requestBody = JSON.parse(vanilliSpy.getCall(0).args[0].requestBody);
-
-            expect(requestBody.times).to.equal(3);
+            expect(parseRequestBodyFrom(vanilliSpy).times).to.equal(3);
         });
 
         it("can be used to add a single expectation (synchronously)", function () {
@@ -220,7 +222,7 @@ describe("milli", function () {
             fakeVanilli.respond();
 
             // Then
-            var requestBody = JSON.parse(vanilliSpy.getCall(0).args[0].requestBody);
+            var requestBody = parseRequestBodyFrom(vanilliSpy);
 
             expect(requestBody[0].times).to.equal(3);
         });
@@ -256,7 +258,7 @@ describe("milli", function () {
             fakeVanilli.respond();
 
             // Then
-            var requestBody = JSON.parse(vanilliSpy.getCall(0).args[0].requestBody);
+            var requestBody = parseRequestBodyFrom(vanilliSpy);
 
             expect(requestBody[0].times).to.equal(1);
         });
@@ -275,7 +277,7 @@ describe("milli", function () {
             fakeVanilli.respond();
 
             // Then
-            var requestBody = JSON.parse(vanilliSpy.getCall(0).args[0].requestBody);
+            var requestBody = parseRequestBodyFrom(vanilliSpy);
 
             expect(requestBody[0].times).to.equal(1);
         });
@@ -423,41 +425,43 @@ describe("milli", function () {
         var dummyVanilliResponse = JSON.stringify([ "someid" ]);
 
         it("creates a loose stub in response to a request for an ignored path", function () {
-            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, JSON.stringify([ "myid" ]) ]);
 
-            var stubs = milli.ignoreCallsTo("/my/url");
+            milli.ignoreCallsTo("/my/url");
 
-            expect(JSON.stringify(stubs[0].vanilliRequestBody)).to.equal(JSON.stringify({
-                criteria: {
-                    url: "/my/url"
-                },
-                respondWith: {
-                    status: 200
-                }
-            }));
+            expect(parseRequestBodyFrom(vanilliSpy).length).to.equal(1);
         });
 
         it("creates many loose stubs in response to a request for many ignored paths", function () {
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
-            var stubs = milli.ignoreCallsTo("/my/url", "/some/other/url", "/a/url/with/regex/.+");
+            milli.ignoreCallsTo("/my/url", "/some/other/url", "/a/url/with/regex/.+");
 
-            expect(stubs[0].vanilliRequestBody.criteria.url).to.equal("/my/url");
-            expect(stubs[1].vanilliRequestBody.criteria.url).to.equal("/some/other/url");
-            expect(stubs[2].vanilliRequestBody.criteria.url).to.equal("/a/url/with/regex/.+");
+            expect(parseRequestBodyFrom(vanilliSpy).length).to.equal(3);
         });
 
         it("creates many loose stubs in response to a request for an array of ignored paths", function () {
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
-            var stubs = milli.ignoreCallsTo(["/my/url", "/some/other/url", "/a/url/with/regex/.+"]);
+            milli.ignoreCallsTo(["/my/url", "/some/other/url", "/a/url/with/regex/.+"]);
 
-            expect(stubs[0].vanilliRequestBody.criteria.url).to.equal("/my/url");
-            expect(stubs[1].vanilliRequestBody.criteria.url).to.equal("/some/other/url");
-            expect(stubs[2].vanilliRequestBody.criteria.url).to.equal("/a/url/with/regex/.+");
+            expect(parseRequestBodyFrom(vanilliSpy).length).to.equal(3);
+        });
+
+        it("creates many loose stubs in response to a request for a combination of arrays and single ignored paths", function () {
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
+
+            milli.ignoreCallsTo(["/my/url", "/some/other/url" ], "/another/url");
+
+            expect(parseRequestBodyFrom(vanilliSpy).length).to.equal(3);
         });
 
         it("creates a loose stub with the default response for an ignored rest resource", function () {
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             // Given
@@ -466,13 +470,14 @@ describe("milli", function () {
             };
 
             // When
-            var stubs = milli.ignoreCallsTo(myResource);
+            milli.ignoreCallsTo(myResource);
 
             // Then
-            expect(stubs[0].vanilliRequestBody.criteria.url).to.equal("/my/url");
+            expect(parseRequestBodyFrom(vanilliSpy)[0].criteria.url).to.equal("/my/url");
         });
 
         it("creates a loose stub with the canned response specified in the rest registry for an ignored rest resource", function () {
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             // Given
@@ -486,11 +491,12 @@ describe("milli", function () {
             };
 
             // When
-            var stubs = milli.ignoreCallsTo(myResource);
+            milli.ignoreCallsTo(myResource);
 
             // Then
-            expect(stubs[0].vanilliRequestBody.respondWith.body).to.equal("something");
-            expect(stubs[0].vanilliRequestBody.respondWith.contentType).to.equal("text/plain");
+            var stub = parseRequestBodyFrom(vanilliSpy)[0];
+            expect(stub.respondWith.body).to.equal("something");
+            expect(stub.respondWith.contentType).to.equal("text/plain");
         });
 
         it("throws an error if an ignored rest resource is specified with no contentType in 'produces' AND 'defaultResponse'", function () {
@@ -511,6 +517,7 @@ describe("milli", function () {
         });
 
         it("uses the content type specified in the rest registry for an ignored rest resource", function () {
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             // Given
@@ -524,13 +531,14 @@ describe("milli", function () {
             };
 
             // When
-            var stubs = milli.ignoreCallsTo(myResource);
+            milli.ignoreCallsTo(myResource);
 
             // Then
-            expect(stubs[0].vanilliRequestBody.respondWith.contentType).to.equal("my/contenttype");
+            expect(parseRequestBodyFrom(vanilliSpy)[0].respondWith.contentType).to.equal("my/contenttype");
         });
 
         it("uses the content type specified in the defaultResponse (if specified) for an ignored rest resource", function () {
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             // Given
@@ -545,14 +553,14 @@ describe("milli", function () {
             };
 
             // When
-            var stubs = milli.ignoreCallsTo(myResource);
+            milli.ignoreCallsTo(myResource);
 
             // Then
-            expect(stubs[0].vanilliRequestBody.respondWith.contentType).to.equal("text/plain");
+            expect(parseRequestBodyFrom(vanilliSpy)[0].respondWith.contentType).to.equal("text/plain");
         });
 
         it("substitutes placeholders in ignored rest resource with [\\s\\S]+?", function () {
-
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
             fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
 
             // Given
@@ -561,26 +569,10 @@ describe("milli", function () {
             };
 
             // When
-            var stubs = milli.ignoreCallsTo(resource);
+            milli.ignoreCallsTo(resource);
 
             // Then
-            expect(stubs[0].vanilliRequestBody.criteria.url).to.equal("/[\\s\\S]+?/url/with/[\\s\\S]+?");
-        });
-
-        it("", function () {
-
-            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
-
-            // Given
-            var resource = {
-                url: "/:my/url/with/:placeholder"
-            };
-
-            // When
-            var stubs = milli.ignoreCallsTo(resource);
-
-            // Then
-            expect(stubs[0].vanilliRequestBody.criteria.url).to.equal("/[\\s\\S]+?/url/with/[\\s\\S]+?");
+            expect(parseRequestBodyFrom(vanilliSpy)[0].criteria.url).to.equal("/[\\s\\S]+?/url/with/[\\s\\S]+?");
         });
     });
 

@@ -183,8 +183,7 @@
                 }));
 
             stubs.length = 0;
-
-            return sendToVanilli("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", body,
+            var result = sendToVanilli("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", body,
                 done,
                 function (xhr) {
                     return JSON.parse(xhr.responseText);
@@ -196,6 +195,8 @@
                         return new Error("Could not add stubs. " + xhr.responseText);
                     }
                 });
+
+            return result;
         }
 
         function clearStubs(done) {
@@ -352,31 +353,50 @@
                 }
             }
 
-            var urlsOrResources = Array.isArray(arguments[0]) ? arguments[0] : argsToArray(arguments),
-                ignores = [];
+            function createIgnoresFrom(objectOrArray) {
+                if (Array.isArray(objectOrArray)) {
+                    return objectOrArray.map(createIgnoresFrom);
 
-            urlsOrResources.forEach(function (urlOrResource) {
-                var substitutionData = {},
-                    stubRespondWith;
-
-                substitutionData[matchAnyPlaceholderSubtitution] = "[\\s\\S]+?";
-
-                if (urlOrResource.defaultResponse) {
-                    stubRespondWith = context.onRequest(null, urlOrResource, substitutionData).respondWith(urlOrResource.defaultResponse);
-
-                    if (typeof urlOrResource.defaultResponse.body !== 'undefined') {
-                        setResponseContentTypeOn(stubRespondWith, urlOrResource);
-                    }
                 } else {
-                    stubRespondWith = context.onRequest(null, urlOrResource, substitutionData).respondWith(200);
+                    var urlOrResource = objectOrArray,
+                        substitutionData = {},
+                        stubRespondWith;
+
+                    substitutionData[matchAnyPlaceholderSubtitution] = "[\\s\\S]+?";
+
+                    if (urlOrResource.defaultResponse) {
+                        stubRespondWith = context.onRequest(null, urlOrResource, substitutionData).respondWith(urlOrResource.defaultResponse);
+
+                        if (typeof urlOrResource.defaultResponse.body !== 'undefined') {
+                            setResponseContentTypeOn(stubRespondWith, urlOrResource);
+                        }
+                    } else {
+                        stubRespondWith = context.onRequest(null, urlOrResource, substitutionData).respondWith(200);
+                    }
+
+                    return stubRespondWith;
                 }
+            }
 
-                ignores.push(stubRespondWith);
-            });
+            function flatten(arrayOfThings) {
+                return arrayOfThings.reduce(function (accumulation, thing) {
+                    if (Array.isArray(thing)) {
+                        thing.forEach(function (item) {
+                            accumulation.push(item);
+                        });
+                    } else {
+                        accumulation.push(thing);
+                    }
+                    return accumulation;
+                }, []);
+            }
 
-            sendStubs(buildStubsFrom(ignores), false);
-
-            return ignores;
+            return sendStubs(
+                buildStubsFrom(
+                    flatten(
+                        createIgnoresFrom(
+                            argsToArray(arguments)))),
+                    false);
         };
     }
 
