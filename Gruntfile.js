@@ -78,9 +78,7 @@ module.exports = function (grunt) {
             options: {
                 port: 14000,
                 logLevel: "warn"
-            },
-            start: {},
-            stop: {}
+            }
         }
     });
 
