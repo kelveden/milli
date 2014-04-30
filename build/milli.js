@@ -1,3 +1,8 @@
+/**
+ * milli v1.3.0
+ *
+ * @author Alistair Dutton (christian@cjohansen.no)
+ */
 (function (context) {
     function argsToArray(args) {
         return Array.prototype.slice.call(args, 0);

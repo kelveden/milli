@@ -53,9 +53,9 @@ module.exports = function (grunt) {
         },
         bump: {
             options: {
-                files: [ 'package.json', 'bower.json' ],
-                commitFiles: [ 'package.json', 'bower.json' ],
-                pushTo: "origin"
+                files: [ 'package.json', 'bower.json', 'src/milli.js', 'build/milli.js' ],
+                commit: false,
+                push: false
             }
         },
         watch: {
@@ -81,6 +81,21 @@ module.exports = function (grunt) {
             },
             start: {},
             stop: {}
+        },
+        replace: {
+            dist: {
+                options: {
+                    patterns: [
+                        {
+                            match: "version",
+                            replacement: 'v<%= pkg.version %>'
+                        }
+                    ]
+                },
+                files: [
+                    { expand: true, flatten: true, src: [ 'build/**/*' ], dest: 'build/' }
+                ]
+            }
         }
     });
 
@@ -93,12 +108,14 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-bump');
     grunt.loadNpmTasks('grunt-bunyan');
     grunt.loadNpmTasks('grunt-complexity');
+    grunt.loadNpmTasks('grunt-replace');
 
     grunt.registerTask('tdd', [ 'jshint', 'vanilli:start', 'karma:tdd:start', 'watch' ]);
     grunt.registerTask('tdd_rerun', [ 'jshint', 'karma:tdd:run' ]);
 
     grunt.registerTask('build', [ 'jshint', 'bunyan', 'vanilli:start', 'karma:ci', 'vanilli:stop', 'copy' ]);
     grunt.registerTask('ci', [ 'bower', 'build' ]);
+    grunt.registerTask('publish', [ 'build', 'bump', 'replace' ]);
 
     grunt.registerTask('default', [ 'build' ]);
 };

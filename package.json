@@ -28,6 +28,7 @@
     "grunt-karma": "0.x",
     "grunt-mocha-cli": "1.x",
     "grunt-mocha-test": "0.x",
+    "grunt-replace": "^0.7.7",
     "grunt-vanilli": "0.x",
     "karma": "0.x",
     "karma-chai": "0.x",
