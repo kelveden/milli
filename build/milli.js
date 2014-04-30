@@ -1,5 +1,5 @@
 /**
- * milli v1.3.0
+ * milli v1.3.2
  *
  * @author Alistair Dutton (christian@cjohansen.no)
  */
