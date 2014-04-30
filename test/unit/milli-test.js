@@ -21,6 +21,12 @@ describe("milli", function () {
         milli.configure({ port: 1234 });
     });
 
+    it("throws an error if it cannot determine 'mode' of function call", function () {
+        expect(function() {
+            milli.clearStubs();
+        }).to.throw(/mode/i);
+    });
+
     describe("configuration", function () {
         it("throws an error if no config object is specified", function () {
             expect(function () {

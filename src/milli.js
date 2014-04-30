@@ -123,7 +123,14 @@
                 syncMode = ((typeof doneOrSync === 'boolean') && !doneOrSync),
                 callbackMode = (typeof doneOrSync === 'function'),
                 promiseMode = !callbackMode && !syncMode,
-                deferred = promiseMode ? Promiser.defer() : null;
+                deferred;
+
+            if (promiseMode) {
+                if (!Promiser) {
+                    throw new Error("Mode (sync, promise or callback) could not be determined. Either a) specify a callback OR b) specify a promiser in the milli config OR c) use the synchronous version of this function.");
+                }
+                deferred = Promiser.defer();
+            }
 
             function reactToCompletedResponse() {
                 function success(result) {
