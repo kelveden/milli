@@ -103,6 +103,11 @@
             return new StubRespondWith(JSON.parse(JSON.stringify(stub)), status, defaultContentType);
         };
 
+        this.priority = function (priority) {
+            stub.priority = priority;
+            return this;
+        };
+
         this.vanilliRequestBody = stub;
     }
 
@@ -374,7 +379,7 @@
                         stubRespondWith = context.onRequest(null, urlOrResource, substitutionData).respondWith(200);
                     }
 
-                    return stubRespondWith;
+                    return stubRespondWith.priority(100);
                 }
             }
 

@@ -419,6 +419,24 @@ describe("milli", function () {
                 );
             }).to.throw(/not a stub/);
         });
+
+        it("will add the specified priority to the submitted stub", function () {
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
+
+            milli.allow( onGet('/some/url').respondWith(200).priority(3));
+
+            expect(parseRequestBodyFrom(vanilliSpy)[0].priority).to.equal(3);
+        });
+
+        it("does not assign a priority if one is not explicitly specified", function () {
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
+
+            milli.allow(onGet('/some/url').respondWith(200));
+
+            expect(parseRequestBodyFrom(vanilliSpy)[0].priority).to.be.undefined;
+        });
     });
 
     describe('ignore adder', function () {
@@ -573,6 +591,15 @@ describe("milli", function () {
 
             // Then
             expect(parseRequestBodyFrom(vanilliSpy)[0].criteria.url).to.equal("/[\\s\\S]+?/url/with/[\\s\\S]+?");
+        });
+
+        it("assigns a priority of 999 to an ignore stub", function () {
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
+
+            milli.ignoreCallsTo("/my/url");
+
+            expect(parseRequestBodyFrom(vanilliSpy)[0].priority).to.equal(100);
         });
     });
 
