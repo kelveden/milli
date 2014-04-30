@@ -88,7 +88,7 @@ module.exports = function (grunt) {
                     patterns: [
                         {
                             match: "version",
-                            replacement: 'v<%= pkg.version %>'
+                            replacement: 'v' + grunt.file.readJSON('package.json').version
                         }
                     ]
                 },
