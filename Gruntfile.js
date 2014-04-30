@@ -53,7 +53,7 @@ module.exports = function (grunt) {
         },
         bump: {
             options: {
-                files: [ 'package.json', 'bower.json', 'src/milli.js', 'build/milli.js' ],
+                files: [ 'package.json', 'bower.json' ],
                 commit: false,
                 push: false
             }
