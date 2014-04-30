@@ -1,7 +1,5 @@
 /**
  * milli v1.3.2
- *
- * @author Alistair Dutton (christian@cjohansen.no)
  */
 (function (context) {
     function argsToArray(args) {
