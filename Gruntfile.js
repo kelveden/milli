@@ -15,7 +15,7 @@ module.exports = function (grunt) {
             }
         },
         copy: {
-            main: {
+            src: {
                 files: [
                     {
                         src: 'src/<%= pkg.name %>.js',
@@ -85,12 +85,7 @@ module.exports = function (grunt) {
         replace: {
             dist: {
                 options: {
-                    patterns: [
-                        {
-                            match: "version",
-                            replacement: 'v' + grunt.file.readJSON('package.json').version
-                        }
-                    ]
+                    patterns: [{ match: "version", replacement: "v<%=pkg.version%>" }]
                 },
                 files: [
                     { expand: true, flatten: true, src: [ 'build/**/*' ], dest: 'build/' }
@@ -113,9 +108,8 @@ module.exports = function (grunt) {
     grunt.registerTask('tdd', [ 'jshint', 'vanilli:start', 'karma:tdd:start', 'watch' ]);
     grunt.registerTask('tdd_rerun', [ 'jshint', 'karma:tdd:run' ]);
 
-    grunt.registerTask('build', [ 'jshint', 'bunyan', 'vanilli:start', 'karma:ci', 'vanilli:stop', 'copy' ]);
+    grunt.registerTask('build', [ 'jshint', 'bunyan', 'vanilli:start', 'karma:ci', 'vanilli:stop', 'copy:src', 'replace' ]);
     grunt.registerTask('ci', [ 'bower', 'build' ]);
-    grunt.registerTask('publish', [ 'build', 'bump', 'replace' ]);
 
     grunt.registerTask('default', [ 'build' ]);
 };
