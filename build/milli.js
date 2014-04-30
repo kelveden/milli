@@ -1,6 +1,3 @@
-/**
- * milli v1.3.4
- */
 (function (context) {
     function argsToArray(args) {
         return Array.prototype.slice.call(args, 0);
