@@ -1,6 +1,7 @@
 {
   "name": "milli",
   "version": "1.4.0",
+  "description": "JavaScript client library for use with vanilli",
   "repository": {
     "type": "git",
     "url": "git://github.com/kelveden/milli.git"
