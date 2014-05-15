@@ -8,7 +8,7 @@
   },
   "main": "build/milli.js",
   "scripts": {
-    "test": "node_modules/.bin/grunt"
+    "test": "node_modules/.bin/grunt ci"
   },
   "author": "Alistair Dutton <kelveden@gmail.com>",
   "license": "BSD-3-Clause",
