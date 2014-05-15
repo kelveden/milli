@@ -3,10 +3,15 @@ describe("milli", function () {
     var request = superagent,
         vanilliPort = 14000;
 
-    before(function (done) {
+    before(function () {
         milli.configure({ port: vanilliPort });
-        done();
+        milli.addDslTo(window);
     });
+
+    after(function () {
+        milli.removeDslFrom(window);
+    });
+
     describe("stubs", function () {
         beforeEach(function (done) {
             milli.clearStubs(function (err) {

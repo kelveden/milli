@@ -5,8 +5,9 @@
     "type": "git",
     "url": "git://github.com/kelveden/milli.git"
   },
+  "main": "build/milli.js",
   "scripts": {
-    "test": "node_modules/.bin/grunt ci"
+    "test": "node_modules/.bin/grunt"
   },
   "author": "Alistair Dutton <kelveden@gmail.com>",
   "license": "BSD-3-Clause",
@@ -37,5 +38,8 @@
   },
   "engines": {
     "node": ">=0.10.0"
+  },
+  "dependencies": {
+    "xhr2": "0.0.7"
   }
 }

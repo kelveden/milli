@@ -5,6 +5,11 @@ describe("milli", function () {
 
     before(function () {
         milli.configure({ port: vanilliPort });
+        milli.addDslTo(window);
+    });
+
+    after(function () {
+        milli.removeDslFrom(window);
     });
 
     beforeEach(function (done) {

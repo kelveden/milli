@@ -8,7 +8,12 @@ describe("milli", function () {
         dummyUrl = "/some/url",
         dummyStatus = 234;
 
+    after(function () {
+        milli.removeDslFrom(window);
+    });
+
     beforeEach(function () {
+        milli.addDslTo(window);
         fakeVanilli = sinon.fakeServer.create();
         milli.configure({ port: vanilliPort });
     });
@@ -18,7 +23,7 @@ describe("milli", function () {
     });
 
     it("can be configured", function () {
-        milli.configure({ port: 1234 });
+        expect(milli.configure({ port: 1234 })).to.equal(milli);
     });
 
     it("throws an error if it cannot determine 'mode' of function call", function () {
@@ -715,6 +720,18 @@ describe("milli", function () {
             expect(stub.vanilliRequestBody.criteria.url).to.equal("/my/url/value1");
             expect(stub.vanilliRequestBody.criteria.query.param2).to.equal("value2");
             expect(stub.vanilliRequestBody.criteria.query.param1).to.not.exist;
+        });
+    });
+
+    describe('DSL', function () {
+        it("can be added as a chain when creating milli", function () {
+            expect(milli.addDslTo(window)).to.equal(milli);
+            expect(window.onGet).to.be.defined;
+        });
+
+        it("can be removed as a chain when creating milli", function () {
+            expect(milli.removeDslFrom(window)).to.equal(milli);
+            expect(window.onGet).to.be.undefined;
         });
     });
 });

@@ -1,4 +1,4 @@
-(function (context) {
+(function () {
     function argsToArray(args) {
         return Array.prototype.slice.call(args, 0);
     }
@@ -116,7 +116,9 @@
         var vanilliPort,
             self = this,
             asyncStubs = [],
-            Promiser;
+            Promiser,
+            matchAnyPlaceholderSubstitution = "*",
+            dsl = [ "onGet", "onPost", "onDelete", "onPut", "onRequest", "expectRequest" ];
 
         function sendToVanilli(method, url, data, doneOrSync, successBuilder, errorBuilder) {
             var xhr = new XMLHttpRequest(),
@@ -275,6 +277,12 @@
             return stubs;
         }
 
+
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // Public API
+        ///////////////////////////////////////////////////////////////////////////////////////////
+
+
         self.configure = function (config) {
             if (!config) {
                 throw new Error("Config must be specified.");
@@ -287,6 +295,8 @@
             vanilliPort = config.port;
             Promiser = config.promiser;
             asyncStubs.length = 0;
+
+            return self;
         };
 
         self.stub = function () {
@@ -374,16 +384,16 @@
                         substitutionData = {},
                         stubRespondWith;
 
-                    substitutionData[matchAnyPlaceholderSubtitution] = "[\\s\\S]+?";
+                    substitutionData[matchAnyPlaceholderSubstitution] = "[\\s\\S]+?";
 
                     if (urlOrResource.defaultResponse) {
-                        stubRespondWith = context.onRequest(null, urlOrResource, substitutionData).respondWith(urlOrResource.defaultResponse);
+                        stubRespondWith = self.onRequest(null, urlOrResource, substitutionData).respondWith(urlOrResource.defaultResponse);
 
                         if (typeof urlOrResource.defaultResponse.body !== 'undefined') {
                             setResponseContentTypeOn(stubRespondWith, urlOrResource);
                         }
                     } else {
-                        stubRespondWith = context.onRequest(null, urlOrResource, substitutionData).respondWith(200);
+                        stubRespondWith = self.onRequest(null, urlOrResource, substitutionData).respondWith(200);
                     }
 
                     return stubRespondWith.priority(100);
@@ -408,88 +418,114 @@
                     flatten(
                         createIgnoresFrom(
                             argsToArray(arguments)))),
-                    false);
+                false);
         };
-    }
 
-    var matchAnyPlaceholderSubtitution = "*";
-
-    context.onRequest = function (method, urlOrResource, substitutionData) {
-        var substitutedPlaceholders = {};
-
-        function substituteTemplatePlaceholders(uriTemplate, substitutionData) {
-            return uriTemplate.replace(/:[a-zA-Z][0-9a-zA-Z]+/g, function (placeholder) {
-                var paramName = placeholder.substr(1),
-                    paramValue = substitutionData[paramName] || substitutionData["*"];
-
-                if (paramValue === undefined) {
-                    throw new Error("Could not find substitution for placeholder '" + placeholder + "'.");
-                }
-
-                substitutedPlaceholders[paramName] = paramValue;
-
-                return paramValue;
+        self.addDslTo = function (context) {
+            dsl.forEach(function (func) {
+                context[func] = self[func];
             });
-        }
 
-        function addLeftoverSubstitutionsAsQueryParameters(stub, substitutionData) {
-            if (substitutionData) {
-                for (var paramName in substitutionData) {
-                    if (substitutionData.hasOwnProperty(paramName) &&
-                        (!substitutedPlaceholders[paramName] && (paramName !== matchAnyPlaceholderSubtitution))) {
-                        stub.param(paramName, substitutionData[paramName]);
+            return self;
+        };
+
+        self.removeDslFrom = function (context) {
+            dsl.forEach(function (func) {
+                delete context[func];
+            });
+
+            return self;
+        };
+
+        self.onRequest = function (method, urlOrResource, substitutionData) {
+            var substitutedPlaceholders = {};
+
+            function substituteTemplatePlaceholders(uriTemplate, substitutionData) {
+                return uriTemplate.replace(/:[a-zA-Z][0-9a-zA-Z]+/g, function (placeholder) {
+                    var paramName = placeholder.substr(1),
+                        paramValue = substitutionData[paramName] || substitutionData["*"];
+
+                    if (paramValue === undefined) {
+                        throw new Error("Could not find substitution for placeholder '" + placeholder + "'.");
+                    }
+
+                    substitutedPlaceholders[paramName] = paramValue;
+
+                    return paramValue;
+                });
+            }
+
+            function addLeftoverSubstitutionsAsQueryParameters(stub, substitutionData) {
+                if (substitutionData) {
+                    for (var paramName in substitutionData) {
+                        if (substitutionData.hasOwnProperty(paramName) &&
+                            (!substitutedPlaceholders[paramName] && (paramName !== matchAnyPlaceholderSubstitution))) {
+                            stub.param(paramName, substitutionData[paramName]);
+                        }
                     }
                 }
             }
-        }
 
-        if (!urlOrResource) {
-            throw new Error("The stub url must be specified.");
-        }
-
-        var stub, url;
-
-        if (typeof urlOrResource !== 'string') {
-            url = substituteTemplatePlaceholders(urlOrResource.url, substitutionData || {});
-            stub = new Stub(method, url, urlOrResource.consumes, urlOrResource.produces);
-        } else {
-            url = substituteTemplatePlaceholders(urlOrResource, substitutionData || {});
-            stub = new Stub(method, url);
-        }
-
-        addLeftoverSubstitutionsAsQueryParameters(stub, substitutionData);
-
-        return stub;
-    };
-
-    context.onGet = function (urlOrResource, substitutionData) {
-        return context.onRequest('GET', urlOrResource, substitutionData);
-    };
-
-    context.onDelete = function (urlOrResource, substitutionData) {
-        return context.onRequest('DELETE', urlOrResource, substitutionData);
-    };
-
-    context.onPut = function (urlOrResource, substitutionData) {
-        return context.onRequest('PUT', urlOrResource, substitutionData);
-    };
-
-    context.onPost = function (urlOrResource, substitutionData) {
-        return context.onRequest('POST', urlOrResource, substitutionData);
-    };
-
-    context.expectRequest = function (stub, times) {
-        function convertToExpectation(stub) {
-            if (isNaN(stub.vanilliRequestBody.times)) {
-                stub.vanilliRequestBody.times = isNaN(times) ? 1 : times;
+            if (!urlOrResource) {
+                throw new Error("The stub url must be specified.");
             }
-            stub.vanilliRequestBody.expect = true;
+
+            var stub, url;
+
+            if (typeof urlOrResource !== 'string') {
+                url = substituteTemplatePlaceholders(urlOrResource.url, substitutionData || {});
+                stub = new Stub(method, url, urlOrResource.consumes, urlOrResource.produces);
+            } else {
+                url = substituteTemplatePlaceholders(urlOrResource, substitutionData || {});
+                stub = new Stub(method, url);
+            }
+
+            addLeftoverSubstitutionsAsQueryParameters(stub, substitutionData);
 
             return stub;
+        };
+
+        self.onGet = function (urlOrResource, substitutionData) {
+            return self.onRequest('GET', urlOrResource, substitutionData);
+        };
+
+        self.onDelete = function (urlOrResource, substitutionData) {
+            return self.onRequest('DELETE', urlOrResource, substitutionData);
+        };
+
+        self.onPut = function (urlOrResource, substitutionData) {
+            return self.onRequest('PUT', urlOrResource, substitutionData);
+        };
+
+        self.onPost = function (urlOrResource, substitutionData) {
+            return self.onRequest('POST', urlOrResource, substitutionData);
+        };
+
+        self.expectRequest = function (stub, times) {
+            function convertToExpectation(stub) {
+                if (isNaN(stub.vanilliRequestBody.times)) {
+                    stub.vanilliRequestBody.times = isNaN(times) ? 1 : times;
+                }
+                stub.vanilliRequestBody.expect = true;
+
+                return stub;
+            }
+
+            return convertToExpectation(stub.clone());
+        };
+    }
+
+    if ((typeof module !== 'undefined') && (typeof module.exports !== 'undefined')) {
+        // CommonJS it
+        module.exports = new Milli();
+
+        if (typeof XMLHttpRequest === 'undefined') {
+            // Running in node.
+            global.XMLHttpRequest = require('xhr2');
         }
+    } else {
+        // Attach to browser
+        window.milli = new Milli();
+    }
 
-        return convertToExpectation(stub.clone());
-    };
-
-    context.milli = new Milli();
-})(window);
+})();
