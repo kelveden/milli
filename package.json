@@ -1,6 +1,6 @@
 {
   "name": "milli",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "JavaScript client library for use with vanilli",
   "repository": {
     "type": "git",
