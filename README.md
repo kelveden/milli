@@ -285,6 +285,3 @@ Configuration is specified via `milli.configure(config)`. The `config` parameter
 (E.g. `{ promiser: Q }` to use Kris Kowal's Q library.) If specified it allows milli to operate in "promise mode". (See "Callback Mode vs Promise Mode" above.)
 
 NOTE: milli just uses duck-typing on the promise library - so the library doesn't *have* to be Promises/B compatible: only to include the functions mentioned above.
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/kelveden/milli/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
