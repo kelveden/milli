@@ -161,26 +161,6 @@ describe("milli", function () {
         });
     });
 
-    describe("ignores", function () {
-        beforeEach(function (done) {
-            milli.clearStubs(function (err) {
-                done(err);
-            });
-        });
-
-        it("can be stored", function (done) {
-            milli.ignoreCallsTo('/my/url');
-
-            request.get("http://localhost:" + vanilliPort + "/my/url")
-                .end(function (err, res) {
-                    if (err) return done(err);
-
-                    expect(res.status).to.equal(200);
-                    done();
-                });
-        });
-    });
-
     describe("captures", function () {
         beforeEach(function (done) {
             milli.clearStubs(function (err) {

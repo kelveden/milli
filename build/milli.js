@@ -364,63 +364,6 @@
             return verify(false);
         };
 
-        self.ignoreCallsTo = function () {
-            function setResponseContentTypeOn(respondWith, resource) {
-                if (!resource.defaultResponse.contentType) {
-                    if (resource.produces) {
-                        respondWith.contentType(resource.produces);
-                    } else {
-                        throw new Error("Either a resource.produces or resource.defaultResponse.contentType must be specified.");
-                    }
-                }
-            }
-
-            function createIgnoresFrom(objectOrArray) {
-                if (Array.isArray(objectOrArray)) {
-                    return objectOrArray.map(createIgnoresFrom);
-
-                } else {
-                    var urlOrResource = objectOrArray,
-                        substitutionData = {},
-                        stubRespondWith;
-
-                    substitutionData[matchAnyPlaceholderSubstitution] = "[\\s\\S]+?";
-
-                    if (urlOrResource.defaultResponse) {
-                        stubRespondWith = self.onRequest(null, urlOrResource, substitutionData).respondWith(urlOrResource.defaultResponse);
-
-                        if (typeof urlOrResource.defaultResponse.body !== 'undefined') {
-                            setResponseContentTypeOn(stubRespondWith, urlOrResource);
-                        }
-                    } else {
-                        stubRespondWith = self.onRequest(null, urlOrResource, substitutionData).respondWith(200);
-                    }
-
-                    return stubRespondWith.priority(100);
-                }
-            }
-
-            function flatten(arrayOfThings) {
-                return arrayOfThings.reduce(function (accumulation, thing) {
-                    if (Array.isArray(thing)) {
-                        thing.forEach(function (item) {
-                            accumulation.push(item);
-                        });
-                    } else {
-                        accumulation.push(thing);
-                    }
-                    return accumulation;
-                }, []);
-            }
-
-            return sendStubs(
-                buildStubsFrom(
-                    flatten(
-                        createIgnoresFrom(
-                            argsToArray(arguments)))),
-                false);
-        };
-
         self.addDslTo = function (context) {
             dsl.forEach(function (func) {
                 context[func] = self[func];

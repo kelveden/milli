@@ -64,19 +64,6 @@ This stub would only be matched against a GET request to "/my/url" that included
 Tells milli about one or more expectations. Setting up an expectation looks exactly the same as setting up a stub except that there is the extra option of
 specifying the number of times that the stub is expected to be invoked.
 
-### milli.ignoreCallsTo(call1, call2, ..., call3)
-Tells milli to ignore calls to the specified list of urls and/or rest resources. Is simply a one-line shortcut to setting up the "ignoring" stubs as usual. E.g.:
-
-    milli.ignoreCallsTo("/my/url", "/another/url", milli.apis.myapi.myresource);
-
-(Note that the following is also acceptable:)
-
-    milli.ignoreCallsTo([ "/my/url", "/another/url", milli.apis.myapi.myresource ]);
-
-would result in simple "match any HTTP method and respond with 200" stubs being set up for the specified urls. (The content type of the empty response will be picked up from the rest
-resource definition as usual unless a `defaultResponse` is specified - see 'Referring to a pre-defined REST API instead of plain urls' below.) The placeholders in the URI template
-for the rest resource will be substituted with `[\\s\\S]+?` (i.e. match anything).
-
 ### milli.run(callback)
 Causes milli to submit all stubs and expectations setup via the asynchronous `stub` to vanilli. The specified callback is then executed. It is not necessary to run this when using milli synchronously.
 
@@ -210,21 +197,6 @@ One can then simply reference the resource instead of a url in milli; e.g.:
 
 Note the substitution object that will be used to substitute values in the URI template of the resource. So, in the example above, the url that would actually be matched against by
 milli would be `/some/url/whatever`.
-
-A default response can also be specified for use with the `ignoreCallsTo` function; e.g.
-
-    var myApi.myResource = {
-        url: "/some/url/:param1",
-        produces: "application/json",
-        defaultResponse: {
-            status: 400,
-            body: "yikes",
-            contentType: "text/plain"
-        }
-    };
-
-In this case, milli will respond to calls to the resource from the SUT with the response above rather than the default blank 200. (Note that milli will match the placeholders in the
-URI template against *anything*.)
 
 Captures
 --------
