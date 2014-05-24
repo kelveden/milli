@@ -87,6 +87,9 @@ module.exports = function (grunt) {
                     reporter: 'spec'
                 }
             }
+        },
+        bunyan: {
+            output: 'short'
         }
     });
 
