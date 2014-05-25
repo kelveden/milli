@@ -448,6 +448,36 @@ describe("milli", function () {
 
             expect(parseRequestBodyFrom(vanilliSpy)[0].priority).to.be.undefined;
         });
+
+        it("converts a url regex into a vanilli object", function (done) {
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
+
+            milli.stub(onGet(new RegExp("/some/url")).respondWith(200)).run(done);
+            fakeVanilli.respond();
+
+            expect(parseRequestBodyFrom(vanilliSpy)[0].criteria.url).to.deep.equal({ regex: "/some/url" });
+        });
+
+        it("converts a query regex into a vanilli object", function (done) {
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
+
+            milli.stub(onGet("/some/url").param("param1", /somevalue/).respondWith(200)).run(done);
+            fakeVanilli.respond();
+
+            expect(parseRequestBodyFrom(vanilliSpy)[0].criteria.query.param1).to.deep.equal({ regex: "somevalue" });
+        });
+
+        it("converts a header regex into a vanilli object", function (done) {
+            var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
+            fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
+
+            milli.stub(onGet("/some/url").header("header1", /somevalue/).respondWith(200)).run(done);
+            fakeVanilli.respond();
+
+            expect(parseRequestBodyFrom(vanilliSpy)[0].criteria.headers.header1).to.deep.equal({ regex: "somevalue" });
+        });
     });
 
     describe('clearing stubs', function () {

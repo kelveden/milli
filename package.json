@@ -30,7 +30,7 @@
     "grunt-karma": "0.x",
     "grunt-mocha-cli": "1.x",
     "grunt-mocha-test": "0.x",
-    "grunt-vanilli": "0.x",
+    "grunt-vanilli": "1.x",
     "karma": "0.x",
     "karma-chai": "0.x",
     "karma-mocha": "0.x",

@@ -159,6 +159,24 @@ describe("milli", function () {
                         });
                 });
         });
+
+        it("will be used to serve the response for a GET request matching on a regex", function (done) {
+            var expectedResponseBody = { myfield: "myvalue" };
+
+            milli.stub(onGet(/\/my\/url/).respondWith(234)
+                .entity(expectedResponseBody, "application/json")).run(
+                function () {
+                    request.get("http://localhost:" + vanilliPort + "/my/url")
+                        .end(function (err, res) {
+                            if (err) return done(err);
+
+                            expect(res.status).to.equal(234);
+                            expect(res.body).to.deep.equal(expectedResponseBody);
+                            expect(res.header['content-type']).to.equal("application/json");
+                            done();
+                        });
+                });
+        });
     });
 
     describe("captures", function () {

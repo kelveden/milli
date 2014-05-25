@@ -3,6 +3,10 @@
         return Array.prototype.slice.call(args, 0);
     }
 
+    function wrapRegexAsVanilliObject (possibleRegex) {
+        return possibleRegex instanceof RegExp ? { regex: possibleRegex.source } : possibleRegex;
+    }
+
     function Stub(method, url, defaultRequestContentType, defaultResponseContentType) {
         this.entity = function (body, contentType) {
             stub.criteria.body = body;
@@ -25,13 +29,13 @@
 
         this.header = function (name, value) {
             stub.criteria.headers = stub.criteria.headers || {};
-            stub.criteria.headers[name] = value;
+            stub.criteria.headers[name] = wrapRegexAsVanilliObject(value);
             return this;
         };
 
         this.param = function (name, value) {
             stub.criteria.query = stub.criteria.query || {};
-            stub.criteria.query[name] = value;
+            stub.criteria.query[name] = wrapRegexAsVanilliObject(value);
             return this;
         };
 
@@ -383,8 +387,10 @@
         self.onRequest = function (method, urlOrResource, substitutionData) {
             var substitutedPlaceholders = {};
 
-            function substituteTemplatePlaceholders(uriTemplate, substitutionData) {
-                return uriTemplate.replace(/:[a-zA-Z][0-9a-zA-Z]+/g, function (placeholder) {
+            function substituteTemplatePlaceholders(uri, substitutionData) {
+                var uriTemplate = uri.regex ? uri.regex : uri;
+
+                uriTemplate = uriTemplate.replace(/:[a-zA-Z][0-9a-zA-Z]+/g, function (placeholder) {
                     var paramName = placeholder.substr(1),
                         paramValue = substitutionData[paramName] || substitutionData["*"];
 
@@ -396,6 +402,13 @@
 
                     return paramValue;
                 });
+
+                if (uri.regex) {
+                    uri.regex = uriTemplate;
+                    return uri;
+                } else {
+                    return uriTemplate;
+                }
             }
 
             function addLeftoverSubstitutionsAsQueryParameters(stub, substitutionData) {
@@ -415,11 +428,15 @@
 
             var stub, url;
 
-            if (typeof urlOrResource !== 'string') {
-                url = substituteTemplatePlaceholders(urlOrResource.url, substitutionData || {});
+            if ((typeof urlOrResource === 'object') && !(urlOrResource instanceof RegExp)) {
+                url = substituteTemplatePlaceholders(
+                    wrapRegexAsVanilliObject(urlOrResource.url), substitutionData || {});
+
                 stub = new Stub(method, url, urlOrResource.consumes, urlOrResource.produces);
             } else {
-                url = substituteTemplatePlaceholders(urlOrResource, substitutionData || {});
+                url = substituteTemplatePlaceholders(
+                    wrapRegexAsVanilliObject(urlOrResource), substitutionData || {});
+
                 stub = new Stub(method, url);
             }
 
