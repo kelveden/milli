@@ -96,7 +96,7 @@ The minimum that milli/vanilli need to know is the URL to match against and what
 
     milli.stub(onGet("my/url")).respondWith(200));
 
-However, there are plenty of other criteria to match against on the stub builder API:
+(Note that the url specified may be a string or a RegExp.) However, there are plenty of other criteria to match against on the stub builder API:
 
 ### Stub Builder API
 #### Stub.body(body)
@@ -109,10 +109,13 @@ Match against a specific Content-Type header; equivalent to `Stub.header("Conten
 Convenience function equivalent to `Stub.body(body).contentType(contentType)`;
 
 #### Stub.header(name, value)
-Match against a specific header with value regex.
+Match against a specific header with value. (Value may be a RegExp.)
 
 #### Stub.param(name, value)
-Match against a specific querystring parameter with value regex.
+Match against a specific querystring parameter with value. (Value may be a RegExp.)
+
+#### Stub.query(name, value)
+Synnoym for `stub.param`. See above.
 
 #### Stub.capture(captureId)
 Instructs milli to capture the content of the request matched against the stub by logging it with the specified `captureId`. This id can
