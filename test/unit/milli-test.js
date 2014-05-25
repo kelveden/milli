@@ -145,6 +145,15 @@ describe("milli", function () {
             expect(stub.vanilliRequestBody.criteria.query.param2).to.equal(param2);
         });
 
+        it("allows using 'query' as a synonym for 'param'", function () {
+            var param1 = "myvalue1",
+                stub = onGet(dummyUrl)
+                    .query('param1', param1)
+                    .respondWith(dummyStatus);
+
+            expect(stub.vanilliRequestBody.criteria.query.param1).to.equal(param1);
+        });
+
         it("assigns the correct number of times that the stub can respond", function () {
             var times = 3,
                 stub = onGet(dummyUrl).respondWith(dummyStatus).times(times);

@@ -39,6 +39,8 @@
             return this;
         };
 
+        this.query = this.param;
+
         this.respondWith = function (status) {
             return new StubRespondWith(stub, status, defaultResponseContentType);
         };
