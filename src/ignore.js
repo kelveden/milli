@@ -19,6 +19,17 @@
         }
 
         function createIgnoresFrom(objectOrArray) {
+            function shallowClone(resource) {
+                var clone = {};
+                for (var prop in resource) {
+                    if (resource.hasOwnProperty(prop)) {
+                        clone[prop] = resource[prop];
+                    }
+                }
+
+                return clone;
+            }
+
             if (Array.isArray(objectOrArray)) {
                 return objectOrArray.map(createIgnoresFrom);
 
@@ -29,9 +40,12 @@
 
                 substitutionData[matchAnyPlaceholderSubstitution] = "[\\s\\S]+?";
 
-                resource.url = {
-                    regex: resource.url
-                };
+                if (typeof resource === 'string') {
+                    resource = new RegExp(resource);
+                } else if (!(resource instanceof RegExp) && !(resource.url instanceof RegExp)) {
+                    resource = shallowClone(resource);
+                    resource.url = new RegExp(resource.url);
+                }
 
                 if (resource.defaultResponse) {
                     stubRespondWith = milli.onRequest(null, resource, substitutionData).respondWith(resource.defaultResponse);

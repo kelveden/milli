@@ -1,6 +1,6 @@
 describe("ignore adder", function () {
-    function parseRequestBodyFrom(vanilliSpy) {
-        return JSON.parse(vanilliSpy.getCall(0).args[0].requestBody);
+    function parseRequestBodyFrom(vanilliSpy, call) {
+        return JSON.parse(vanilliSpy.getCall(call || 0).args[0].requestBody);
     }
 
     var fakeVanilli,
@@ -170,6 +170,24 @@ describe("ignore adder", function () {
 
         // Then
         expect(parseRequestBodyFrom(vanilliSpy)[0].criteria.url).to.deep.equal({ regex: "/[\\s\\S]+?/url/with/[\\s\\S]+?" });
+    });
+
+    it("is able to add the same ignore twice", function () {
+        var vanilliSpy = sinon.spy(fakeVanilli, "handleRequest");
+        fakeVanilli.respondWith("POST", "http://localhost:" + vanilliPort + "/_vanilli/stubs", [ 200, {}, dummyVanilliResponse ]);
+
+        // Given
+        var resource = {
+            url: "/:my/url/with/:placeholder"
+        };
+
+        // When
+        milli.ignore(resource);
+        milli.ignore(resource);
+
+        // Then
+        expect(parseRequestBodyFrom(vanilliSpy)[0].criteria.url).to.deep.equal({ regex: "/[\\s\\S]+?/url/with/[\\s\\S]+?" });
+        expect(parseRequestBodyFrom(vanilliSpy)[0].criteria.url, 1).to.deep.equal({ regex: "/[\\s\\S]+?/url/with/[\\s\\S]+?" });
     });
 
     it("assigns a priority of 999 to an ignore stub", function () {
