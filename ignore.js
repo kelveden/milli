@@ -23,20 +23,24 @@
                 return objectOrArray.map(createIgnoresFrom);
 
             } else {
-                var urlOrResource = objectOrArray,
+                var resource = objectOrArray,
                     substitutionData = {},
                     stubRespondWith;
 
                 substitutionData[matchAnyPlaceholderSubstitution] = "[\\s\\S]+?";
 
-                if (urlOrResource.defaultResponse) {
-                    stubRespondWith = self.onRequest(null, urlOrResource, substitutionData).respondWith(urlOrResource.defaultResponse);
+                resource.url = {
+                    regex: resource.url
+                };
 
-                    if (typeof urlOrResource.defaultResponse.body !== 'undefined') {
-                        setResponseContentTypeOn(stubRespondWith, urlOrResource);
+                if (resource.defaultResponse) {
+                    stubRespondWith = milli.onRequest(null, resource, substitutionData).respondWith(resource.defaultResponse);
+
+                    if (typeof resource.defaultResponse.body !== 'undefined') {
+                        setResponseContentTypeOn(stubRespondWith, resource);
                     }
                 } else {
-                    stubRespondWith = milli.onRequest(null, urlOrResource, substitutionData).respondWith(200);
+                    stubRespondWith = milli.onRequest(null, resource, substitutionData).respondWith(200);
                 }
 
                 return stubRespondWith.priority(100);

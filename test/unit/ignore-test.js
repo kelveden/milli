@@ -70,7 +70,7 @@ describe("ignore adder", function () {
         milli.ignore(myResource);
 
         // Then
-        expect(parseRequestBodyFrom(vanilliSpy)[0].criteria.url).to.equal("/my/url");
+        expect(parseRequestBodyFrom(vanilliSpy)[0].criteria.url).to.deep.equal({ regex: "/my/url" });
     });
 
     it("creates a loose stub with the canned response specified in the rest registry for an ignored rest resource", function () {
@@ -169,7 +169,7 @@ describe("ignore adder", function () {
         milli.ignore(resource);
 
         // Then
-        expect(parseRequestBodyFrom(vanilliSpy)[0].criteria.url).to.equal("/[\\s\\S]+?/url/with/[\\s\\S]+?");
+        expect(parseRequestBodyFrom(vanilliSpy)[0].criteria.url).to.deep.equal({ regex: "/[\\s\\S]+?/url/with/[\\s\\S]+?" });
     });
 
     it("assigns a priority of 999 to an ignore stub", function () {
