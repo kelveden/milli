@@ -6,7 +6,7 @@
     "type": "git",
     "url": "git://github.com/kelveden/milli.git"
   },
-  "main": "build/milli.js",
+  "main": "milli",
   "scripts": {
     "test": "node_modules/.bin/grunt ci"
   },
