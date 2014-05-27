@@ -1,9 +1,9 @@
 /* jshint expr:true */
-describe("milli", function () {
+describe("milli in node", function () {
     var request = require('superagent'),
         expect = require('chai').expect,
         vanilliPort = 14000,
-        milli = require('../../src/milli.js');
+        milli = require('../../src/milli');
 
     before(function (done) {
         milli.configure({ port: vanilliPort });
@@ -12,7 +12,7 @@ describe("milli", function () {
         });
     });
 
-    it("can be used from nodejs", function (done) {
+    it("works", function (done) {
         var expectedResponseBody = { myfield: "myvalue" };
 
         milli.stub(milli.onGet('/my/url').respondWith(234)
@@ -28,5 +28,10 @@ describe("milli", function () {
                         done();
                     });
             });
+    });
+
+    it("can load ignores module", function () {
+        require('../../src/ignore');
+        expect(milli.ignore).to.be.defined;
     });
 });

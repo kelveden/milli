@@ -28,9 +28,10 @@ module.exports = function(config) {
                 pattern: 'bower_components/q/q.js',
                 watch: false
             },
-            'src/**/*.js',
+            'src/milli.js',
+            'src/ignore.js',
             'test/unit/*.js',
-            'test/e2e/*.js',
+            'test/e2e/*.js'
         ]
     });
 };

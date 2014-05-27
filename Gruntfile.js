@@ -18,8 +18,10 @@ module.exports = function (grunt) {
             src: {
                 files: [
                     {
-                        src: 'src/<%= pkg.name %>.js',
-                        dest: 'build/<%= pkg.name %>.js'
+                        expand: true,
+                        flatten: true,
+                        src: 'src/*.js',
+                        dest: 'build/'
                     }
                 ]
             }

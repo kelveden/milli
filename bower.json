@@ -2,7 +2,8 @@
   "name": "milli",
   "version": "3.0.0",
   "main": [
-    "build/milli.js"
+    "build/milli.js",
+    "build/ignore.js"
   ],
   "license": "BSD-3-Clause",
   "ignore": [
