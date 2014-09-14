@@ -15,9 +15,9 @@
     "test"
   ],
   "devDependencies": {
-    "superagent": "0.x",
-    "sinon": "1.x",
-    "q": "1.x"
+    "superagent": "0.18.2",
+    "sinon": "1.10.1",
+    "q": "1.0.1"
   },
   "homepage": "https://github.com/kelveden/milli",
   "authors": [
