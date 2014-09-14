@@ -7,9 +7,17 @@ A Javascript fluent API for use with https://github.com/kelveden/vanilli.
 
 Installation
 ------------
-milli is a single library with no dependencies. You can either pull the latest from the source `build` folder or install with bower:
+milli is a single library with no dependencies.
 
-	bower install milli
+If you intend to use milli javascript running in a browser, install with bower:
+
+	bower install milli --save-dev
+
+alternatively, for server-side use, use npm:
+
+    npm install milli --save-dev
+
+(You could, of course, install with npm and then use from client-side code via some sort of browserify-type package.)
 
 Usage
 -----
@@ -48,36 +56,60 @@ So, what's going on here? You can probably spot that there are several distinct 
 
 API
 ---
-### milli.stub(s1, s2, ..., sX)
+### milli.configure(config)
+Allows the configuration of milli. See the 'Configuration' section below for more information.
+
+### Asynchronous
+#### milli.stub(s1, s2, ..., sX)
 Tells milli about one or more stubs. A simple stub might look like:
 
     milli.stub(
         onGet("my/url")
             .param("queryparam1", "matchthisvalue")
             .respondWith(200)
-            .entity("some content", "text/plain");
+            .entity("some content", "text/plain"))
+        .run(function () {
+            // Do stuff and assert...
+        });
 
 This stub would only be matched against a GET request to "/my/url" that included the query parameter `queryparam1=matchthisvalue`. For more information see the section on
 "Stubs and Expectations" below.
 
-### milli.expect(e1, e2, ..., eX)
+#### milli.expectRequest(e1, e2, ..., eX)
 Tells milli about one or more expectations. Setting up an expectation looks exactly the same as setting up a stub except that there is the extra option of
 specifying the number of times that the stub is expected to be invoked.
 
-### milli.run(callback)
+#### milli.run(callback)
 Causes milli to submit all stubs and expectations setup via the asynchronous `stub` to vanilli. The specified callback is then executed. It is not necessary to run this when using milli synchronously.
 
-### milli.verifyExpectations([doneCallback])
+#### milli.verifyExpectations([doneCallback])
 Verifies that all expectations setup via `expect` have been met. If expectations have not been met, the doneCallback argument is called passing in a new Error object to it as the first argument; otherwise the doneCallback is called with no arguments.
 
-### milli.configure(config)
-Allows the configuration of milli. See the 'Configuration' section below for more information.
-
-### milli.clearStubs(doneCallback)
+#### milli.clearStubs(doneCallback)
 Tells vanilli to clear down all stubs and expectations. After this is done, the specified `doneCallback` is executed.
 
-### milli.getCapture(captureId, doneCallback)
+#### milli.getCapture(captureId, doneCallback)
 Retrieves the details of the specified capture. The result is passed to the specified `doneCallback`.
+
+### Synchronous
+Synchronous versions of the asynchronous API above exist that are identical to their asynchronous versions apart from being
+(duh) synchronous and therefore returning the operation result as the return value of the function itself: `verifyExpectationsSync`, `clearStubsSync`, `getCaptureSync`.
+
+Setting up stubs themselves makes use of synchronous functions that in turn make use of the same `onGet` et al functions as the async versions.
+
+To synchronously store one or more stubs to vanilli, instead of using `stub` use `allow`:
+
+    milli.allow(
+        onGet(...),
+        onPost(...),
+        ...);
+
+To synchronously store one or more expectations, instead of using `expectRequest` use `expect`:
+
+    milli.expect(
+        onGet(...),
+        onPost(...),
+        ...);
 
 Stubs
 -----
