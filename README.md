@@ -1,7 +1,8 @@
 milli
 =====
 [![Build Status](https://travis-ci.org/kelveden/milli.png?branch=master)](https://travis-ci.org/kelveden/milli)
-[![Dependencies Status](https://david-dm.org/kelveden/milli.png?branch=master)](https://david-dm.org/kelveden/milli)
+
+> *IMPORTANT*: As of vanilli 3.x, milli is deprecated. Vanilli itself now provides its own javascript API.
 
 A Javascript fluent API for use with https://github.com/kelveden/vanilli.
 
