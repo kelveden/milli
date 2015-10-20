@@ -2,9 +2,7 @@ milli
 =====
 [![Build Status](https://travis-ci.org/kelveden/milli.png?branch=master)](https://travis-ci.org/kelveden/milli)
 
-> *IMPORTANT*: As of vanilli 3.x, milli is deprecated. Vanilli itself now provides its own javascript API.
-
-A Javascript fluent API for use with https://github.com/mixradio/vanilli.
+> *IMPORTANT*: DEPRECATED. Milli has been deprecated and ownership of vanilli has been handed over to the good folks at [MixRadio](https://github.com/mixradio/vanilli).
 
 Installation
 ------------
