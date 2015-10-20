@@ -4,7 +4,7 @@ milli
 
 > *IMPORTANT*: As of vanilli 3.x, milli is deprecated. Vanilli itself now provides its own javascript API.
 
-A Javascript fluent API for use with https://github.com/kelveden/vanilli.
+A Javascript fluent API for use with https://github.com/mixradio/vanilli.
 
 Installation
 ------------
